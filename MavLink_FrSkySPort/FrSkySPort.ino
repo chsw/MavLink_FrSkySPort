@@ -176,13 +176,13 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       FrSkySPort_SendPackage(FR_ID_ADC2,adc2);                  
       break;       
     case 2:
-      FrSkySPort_SendPackage(FR_ID_ACCX,ap_accX_old - ap_accX);    
+      FrSkySPort_SendPackage(FR_ID_ACCX, fetchAccX());    
       break;
     case 3:
-      FrSkySPort_SendPackage(FR_ID_ACCY,ap_accY_old - ap_accY); 
+      FrSkySPort_SendPackage(FR_ID_ACCY, fetchAccY()); 
       break; 
     case 4:
-      FrSkySPort_SendPackage(FR_ID_ACCZ,ap_accZ_old - ap_accZ); 
+      FrSkySPort_SendPackage(FR_ID_ACCZ, fetchAccZ()); 
       break; 
     case 5:
       FrSkySPort_SendPackage(FR_ID_T1,gps_status); 

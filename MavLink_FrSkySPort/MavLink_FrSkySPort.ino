@@ -90,15 +90,6 @@ uint16_t  ap_throttle = 0;
 int32_t    ap_bar_altitude = 0;    // 100 = 1m
 int32_t    ap_climb_rate=0;        // 100= 1m/s
 
-// Message #27 RAW IMU 
-int32_t   ap_accX = 0;
-int32_t   ap_accY = 0;
-int32_t   ap_accZ = 0;
-
-int32_t   ap_accX_old = 0;
-int32_t   ap_accY_old = 0;
-int32_t   ap_accZ_old = 0;
-
 // ******************************************
 // These are special for FrSky
 int32_t   adc2 = 0;               // 100 = 1.0V
@@ -115,7 +106,6 @@ uint16_t  hb_count;
 
 unsigned long MavLink_Connected_timer;
 unsigned long hb_timer;
-unsigned long acc_timer;
 
 int led = 13;
 
@@ -130,7 +120,6 @@ void setup()  {
   MavLink_Connected = 0;
   MavLink_Connected_timer=millis();
   hb_timer = millis();
-  acc_timer=millis();
   hb_count = 0;
 
 
@@ -176,15 +165,6 @@ void loop()  {
   FrSkySPort_Process();               // Check FrSky S.Port communication
 
   adc2 =analogRead(0)/4;               // Read ananog value from A0 (Pin 14). ( Will be A2 value on FrSky LCD)
-
-  if((millis() - acc_timer) > 1000) {    // Reset timer for AccX, AccY and AccZ
-    ap_accX_old=ap_accX;
-    ap_accY_old=ap_accY;
-    ap_accZ_old=ap_accZ;
-    acc_timer=millis();
-    //debugSerial.println(ap_base_mode);
-  }
-
 }
 
 
@@ -261,9 +241,10 @@ void _MavLink_receive() {
 #endif
         break;
       case MAVLINK_MSG_ID_RAW_IMU:   // 27
-        ap_accX = mavlink_msg_raw_imu_get_xacc(&msg) / 10;                // 
-        ap_accY = mavlink_msg_raw_imu_get_yacc(&msg) / 10;
-        ap_accZ = mavlink_msg_raw_imu_get_zacc(&msg) / 10;
+        storeAccX(mavlink_msg_raw_imu_get_xacc(&msg) / 10);
+        storeAccY(mavlink_msg_raw_imu_get_yacc(&msg) / 10);
+        storeAccZ(mavlink_msg_raw_imu_get_zacc(&msg) / 10);
+
 #ifdef DEBUG_ACC
         debugSerial.print(millis());
         debugSerial.print("\tMAVLINK_MSG_ID_RAW_IMU: xacc: ");
@@ -303,6 +284,7 @@ void _MavLink_receive() {
     }
   }
 }
+
 
 
 
