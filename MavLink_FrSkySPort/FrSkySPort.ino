@@ -4,16 +4,19 @@
 #define _FrSkySPort_C1                UART0_C1
 #define _FrSkySPort_C3                UART0_C3
 #define _FrSkySPort_S2                UART0_S2
-#define _FrSkySPort_BAUD           57600
-#define   MAX_ID_COUNT              19
+#define _FrSkySPort_BAUD              57600
 
 short crc;                         // used for crc calc of frsky-packet
-uint8_t lastRx;
-uint32_t FR_ID_count = 0;
+boolean waitingForSensorId = false;
 uint8_t cell_count = 0;
 uint8_t latlong_flag = 0;
 uint32_t latlong = 0;
-uint8_t first=0;
+
+uint8_t nextFLVSS = 0;
+uint8_t nextFAS = 0;
+uint8_t nextVARIO = 0;
+uint8_t nextGPS = 0;
+uint8_t nextDefault = 0;
 // ***********************************************************************
 void FrSkySPort_Init(void)  {
   _FrSkySPort_Serial.begin(_FrSkySPort_BAUD);
@@ -31,25 +34,101 @@ void FrSkySPort_Process(void) {
   while ( _FrSkySPort_Serial.available()) 
   {
     data =  _FrSkySPort_Serial.read();
-    if (lastRx == START_STOP && ((data == SENSOR_ID1) || (data == SENSOR_ID2) || (data == SENSOR_ID3)  || (data == SENSOR_ID4))) 
-    {
 
-      switch(FR_ID_count) {
+    if(data == START_STOP)
+    {
+      waitingForSensorId = true; 
+      continue; 
+    }
+    if(!waitingForSensorId)
+      continue;
+
+    FrSkySPort_ProcessSensorRequest(data);
+
+    waitingForSensorId = false;
+  }
+}
+
+// ***********************************************************************
+void FrSkySPort_ProcessSensorRequest(uint8_t sensorId) 
+{
+  uint32_t temp=0;
+  uint8_t offset;
+  switch(sensorId)
+  {
+  case SENSOR_ID_FLVSS:
+    {
+      printDebugPackageSend("FLVSS", nextFLVSS+1, 3);
+      switch(nextFLVSS)
+      {
       case 0:
-        if(ap_fixtype==3) {
-          FrSkySPort_SendPackage(FR_ID_SPEED,ap_groundspeed *20 );  // from GPS converted to km/h
+        if(ap_cell_count > 0) 
+        {
+          // First 2 cells
+          offset = 0x00 | ((ap_cell_count & 0xF)<<4);
+          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
+          FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 0,1
         }
         break;
-      case 1:
-        FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2);   //  * 2 if number of blades on Taranis is set to 2
+      case 1:    
+        // Optional 3 and 4 Cells
+        if(ap_cell_count > 2) {
+          offset = 0x02 | ((ap_cell_count & 0xF)<<4);
+          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
+          FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 2,3
+        }
         break;
-      case 2:
-        FrSkySPort_SendPackage(FR_ID_CURRENT,ap_current_battery / 10); 
-        break; 
-      case 3:        // Sends the altitude value from barometer, first sent value used as zero altitude
+      case 2:    // Optional 5 and 6 Cells
+        if(ap_cell_count > 4) {
+          offset = 0x04 | ((ap_cell_count & 0xF)<<4);
+          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
+          FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 2,3
+        }
+        break;     
+      }
+      nextFLVSS++;
+      if(nextFLVSS>2)
+        nextFLVSS=0;
+    }
+    break;
+  case SENSOR_ID_VARIO:
+    {
+      printDebugPackageSend("VARIO", nextVARIO+1, 2);
+      switch(nextVARIO)
+      {
+      case 0:
+        FrSkySPort_SendPackage(FR_ID_VARIO,ap_climb_rate );       // 100 = 1m/s        
+        break;
+      case 1: 
         FrSkySPort_SendPackage(FR_ID_ALTITUDE,ap_bar_altitude);   // from barometer, 100 = 1m
-        break;       
-      case 4:        // Sends the ap_longitude value, setting bit 31 high
+        break;
+      }
+      if(++nextVARIO > 1)
+        nextVARIO = 0;
+    }
+    break;
+  case SENSOR_ID_FAS:
+    {
+      printDebugPackageSend("FAS", nextFAS+1, 2);
+      switch(nextFAS)
+      {
+      case 0:
+        FrSkySPort_SendPackage(FR_ID_CURRENT,ap_current_battery / 10);
+        break;
+      case 1:
+        FrSkySPort_SendPackage(FR_ID_VFAS,ap_voltage_battery/10); // Sends voltage as a VFAS value
+        break;
+      }
+      if(++nextFAS > 1)
+        nextFAS = 0;
+    }
+    break;
+  case SENSOR_ID_GPS:
+    {
+      printDebugPackageSend("GPS", nextGPS+1, 4);
+      switch(nextGPS)
+      {
+      case 0:        // Sends the ap_longitude value, setting bit 31 high
         if(ap_fixtype==3) {
           if(ap_longitude < 0)
             latlong=((abs(ap_longitude)/100)*6)  | 0xC0000000;
@@ -58,7 +137,7 @@ void FrSkySPort_Process(void) {
           FrSkySPort_SendPackage(FR_ID_LATLONG,latlong);
         }
         break;
-      case 5:        // Sends the ap_latitude value, setting bit 31 low  
+      case 1:        // Sends the ap_latitude value, setting bit 31 low  
         if(ap_fixtype==3) {
           if(ap_latitude < 0 )
             latlong=((abs(ap_latitude)/100)*6) | 0x40000000;
@@ -67,66 +146,80 @@ void FrSkySPort_Process(void) {
           FrSkySPort_SendPackage(FR_ID_LATLONG,latlong);
         }
         break;  
-      case 6:        // Sends the compass heading
-        FrSkySPort_SendPackage(FR_ID_HEADING,ap_heading * 100);   // 10000 = 100 deg
-        break;    
-      case 7:        // Sends the analog value from input A0 on Teensy 3.1
-        FrSkySPort_SendPackage(FR_ID_ADC2,adc2);                  
-        break;       
-      case 8:        // First 2 cells
-        temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
-        FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8));          // Battery cell 0,1
-        break;
-      case 9:    // Optional 3 and 4 Cells
-        if(ap_cell_count > 2) {
-          offset = ap_cell_count > 3 ? 0x02: 0x01;
-          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
-          FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 2,3
+      case 2:
+        if(ap_fixtype==3) {
+          FrSkySPort_SendPackage(FR_ID_GPS_ALT,ap_gps_altitude / 10);   // from GPS,  100=1m
         }
-        break;
-      case 10:    // Optional 5 and 6 Cells
-        if(ap_cell_count > 4) {
-          offset = ap_cell_count > 5 ? 0x04: 0x03;
-          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
-          FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 2,3
+      case 3:
+        if(ap_fixtype==3) {
+          //            FrSkySPort_SendPackage(FR_ID_SPEED,ap_groundspeed *20 );  // from GPS converted to km/h
+          FrSkySPort_SendPackage(FR_ID_SPEED,ap_gps_speed *20 );  // from GPS converted to km/h
         }
-        break;     
-      case 11:
-        FrSkySPort_SendPackage(FR_ID_ACCX,ap_accX_old - ap_accX);    
-        break;
-      case 12:
-        FrSkySPort_SendPackage(FR_ID_ACCY,ap_accY_old - ap_accY); 
-        break; 
-      case 13:
-        FrSkySPort_SendPackage(FR_ID_ACCZ,ap_accZ_old - ap_accZ ); 
-        break; 
-      case 14:        // Sends voltage as a VFAS value
-        FrSkySPort_SendPackage(FR_ID_VFAS,ap_voltage_battery/10); 
-        break;   
-      case 15:
-        FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
-        break; 
-      case 16:
-        FrSkySPort_SendPackage(FR_ID_T2,ap_base_mode); 
-        break;
-      case 17:
-        FrSkySPort_SendPackage(FR_ID_VARIO,ap_climb_rate );       // 100 = 1m/s        
-        break;
-      case 18:
-        //if(ap_fixtype==3) {
-        FrSkySPort_SendPackage(FR_ID_GPS_ALT,ap_gps_altitude / 10);   // from GPS,  100=1m
-        // }
-        break;
-      case 19:
-        FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
-        break;      
-
       }
-      FR_ID_count++;
-      if(FR_ID_count > MAX_ID_COUNT) FR_ID_count = 0;  
+      if(++nextGPS > 3)
+        nextGPS = 0;
     }
-    lastRx=data;
+    break;    
+  case SENSOR_ID_RPM:
+    printDebugPackageSend("RPM", 1, 1);
+    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2);   //  * 2 if number of blades on Taranis is set to 2
+    break;
+    // Since I don't know the app-id for these values, I just use these two "random"
+  case 0x45:
+  case 0xC6:
+    switch(nextDefault)
+    {
+    case 0:        // Sends the compass heading
+      FrSkySPort_SendPackage(FR_ID_HEADING,ap_heading * 100);   // 10000 = 100 deg
+      break;    
+    case 1:        // Sends the analog value from input A0 on Teensy 3.1
+      FrSkySPort_SendPackage(FR_ID_ADC2,adc2);                  
+      break;       
+    case 2:
+      FrSkySPort_SendPackage(FR_ID_ACCX,ap_accX_old - ap_accX);    
+      break;
+    case 3:
+      FrSkySPort_SendPackage(FR_ID_ACCY,ap_accY_old - ap_accY); 
+      break; 
+    case 4:
+      FrSkySPort_SendPackage(FR_ID_ACCZ,ap_accZ_old - ap_accZ); 
+      break; 
+    case 5:
+      FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
+      break; 
+    case 6:
+      FrSkySPort_SendPackage(FR_ID_T2,ap_base_mode); 
+      break;
+    case 7:
+      FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
+      break;      
+    }
+    if(++nextDefault > 7)
+      nextDefault = 0;
+  default: 
+#ifdef DEBUG_FRSKY_SENSOR_REQUEST
+    debugSerial.print(millis());
+    debugSerial.print("\tRequested data for unsupported appId: ");
+    debugSerial.print(sensorId, HEX);
+    debugSerial.println();      
+#endif
   }
+}
+
+// ***********************************************************************
+void printDebugPackageSend(char* pkg_name, uint8_t pkg_nr, uint8_t pkg_max)
+{
+#ifdef DEBUG_FRSKY_SENSOR_REQUEST
+  debugSerial.print(millis());
+  debugSerial.print("\tCreating frsky package for ");
+  debugSerial.print(pkg_name);
+  debugSerial.print(" (");
+  debugSerial.print(pkg_nr);
+  debugSerial.print("/");
+  debugSerial.print(pkg_max);
+  debugSerial.print(")");
+  debugSerial.println();
+#endif
 }
 
 
@@ -172,6 +265,5 @@ void FrSkySPort_SendPackage(uint16_t id, uint32_t value) {
   _FrSkySPort_C3 ^= 32;      // Transmit direction, from S.Port
 
   digitalWrite(led,LOW);
-
 }
 
