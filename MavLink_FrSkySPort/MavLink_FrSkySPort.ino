@@ -52,6 +52,12 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 #define START                   1
 #define MSG_RATE            10              // Hertz
 
+#define DEBUG_VFR_HUD
+#define DEBUG_GPS_RAW
+#define DEBUG_ACC
+#define DEBUG_BAT
+
+
 // ******************************************
 // Message #0  HEARTHBEAT 
 uint8_t    ap_type = 0;
@@ -72,10 +78,9 @@ uint8_t    ap_sat_visible = 0;           // numbers of visible satelites
 int32_t    ap_latitude = 0;              // 585522540;
 int32_t    ap_longitude = 0;            // 162344467;
 int32_t    ap_gps_altitude = 0;        // 1000 = 1m
-
+int32_t    ap_gps_speed = 0;
 
 // Message #74 VFR_HUD 
-int32_t    ap_airspeed = 0;
 uint32_t  ap_groundspeed = 0;
 uint32_t  ap_heading = 0;
 uint16_t  ap_throttle = 0;
@@ -211,6 +216,15 @@ void _MavLink_receive() {
         ap_voltage_battery = Get_Volt_Average(mavlink_msg_sys_status_get_voltage_battery(&msg));  // 1 = 1mV
         ap_current_battery = Get_Current_Average(mavlink_msg_sys_status_get_current_battery(&msg));     // 1=10mA
 
+#ifdef DEBUG_BAT
+        debugSerial.print(millis());
+        debugSerial.print("\tMAVLINK_MSG_ID_SYS_STATUS: voltage_battery: ");
+        debugSerial.print(mavlink_msg_sys_status_get_voltage_battery(&msg));
+        debugSerial.print(", current_battery: ");
+        debugSerial.print(mavlink_msg_sys_status_get_current_battery(&msg));
+        debugSerial.println();
+#endif
+
         if(ap_voltage_battery > 21000) ap_cell_count = 6;
         else if (ap_voltage_battery > 16800 && ap_cell_count != 6) ap_cell_count = 5;
         else if(ap_voltage_battery > 12600 && ap_cell_count != 5) ap_cell_count = 4;
@@ -226,20 +240,60 @@ void _MavLink_receive() {
           ap_latitude = mavlink_msg_gps_raw_int_get_lat(&msg);
           ap_longitude = mavlink_msg_gps_raw_int_get_lon(&msg);
           ap_gps_altitude = mavlink_msg_gps_raw_int_get_alt(&msg);    // 1m =1000
+          ap_gps_speed = mavlink_msg_gps_raw_int_get_vel(&msg);         // 100 = 1m/s
         }
+        else
+        {
+          ap_gps_speed = 0;  
+        }
+#ifdef DEBUG_GPS_RAW    
+        debugSerial.print(millis());
+        debugSerial.print("\tMAVLINK_MSG_ID_GPS_RAW_INT: fixtype: ");
+        debugSerial.print(ap_fixtype);
+        debugSerial.print(", visiblesats: ");
+        debugSerial.print(ap_sat_visible);
+        debugSerial.print(", status: ");
+        debugSerial.print(gps_status);
+        debugSerial.print(", gpsspeed: ");
+        debugSerial.print(mavlink_msg_gps_raw_int_get_vel(&msg)/100.0);
+        debugSerial.println();                                     
+#endif
         break;
       case MAVLINK_MSG_ID_RAW_IMU:   // 27
         ap_accX = mavlink_msg_raw_imu_get_xacc(&msg) / 10;                // 
         ap_accY = mavlink_msg_raw_imu_get_yacc(&msg) / 10;
         ap_accZ = mavlink_msg_raw_imu_get_zacc(&msg) / 10;
+#ifdef DEBUG_ACC
+        debugSerial.print(millis());
+        debugSerial.print("\tMAVLINK_MSG_ID_RAW_IMU: xacc: ");
+        debugSerial.print(mavlink_msg_raw_imu_get_xacc(&msg));
+        debugSerial.print(", yacc: ");
+        debugSerial.print(mavlink_msg_raw_imu_get_yacc(&msg));
+        debugSerial.print(", zacc: ");
+        debugSerial.print(mavlink_msg_raw_imu_get_zacc(&msg));
+        debugSerial.println();
+#endif
         break;      
       case MAVLINK_MSG_ID_VFR_HUD:   //  74
-        ap_airspeed = 0;
         ap_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);      // 100 = 1m/s
         ap_heading = mavlink_msg_vfr_hud_get_heading(&msg);     // 100 = 100 deg
         ap_throttle = mavlink_msg_vfr_hud_get_throttle(&msg);        //  100 = 100%
         ap_bar_altitude = mavlink_msg_vfr_hud_get_alt(&msg) * 100;        //  m
         ap_climb_rate=mavlink_msg_vfr_hud_get_climb(&msg) * 100;        //  m/s
+#ifdef DEBUG_VFR_HUD
+        debugSerial.print(millis());
+        debugSerial.print("\tMAVLINK_MSG_ID_VFR_HUD: groundspeed: ");
+        debugSerial.print(ap_groundspeed);
+        debugSerial.print(", heading: ");
+        debugSerial.print(ap_heading);
+        debugSerial.print(", throttle: ");
+        debugSerial.print(ap_throttle);
+        debugSerial.print(", alt: ");
+        debugSerial.print(ap_bar_altitude);
+        debugSerial.print(", climbrate: ");
+        debugSerial.print(ap_climb_rate);
+        debugSerial.println();
+#endif
         break; 
       default:
         break;
