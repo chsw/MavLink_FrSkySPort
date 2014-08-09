@@ -1,6 +1,8 @@
+
 uint16_t Volt_AverageBuffer[10]; 
 uint16_t Current_AverageBuffer[10]; 
 
+// Used to calculate an average vibration level using accelerometers
 #define accBufferSize 5
 int32_t accXBuffer[accBufferSize];
 int32_t accYBuffer[accBufferSize];
@@ -8,6 +10,103 @@ int32_t accZBuffer[accBufferSize];
 int nrSamplesX = 0;
 int nrSamplesY = 0;
 int nrSamplesZ = 0;
+
+// Used to calculate the average voltage/current between each frksy poll-request.
+// A bit overkill since we most of the time only receive one sample from mavlink between each poll.
+// voltageMinimum is used to report the lowest value received through mavlink between each poll frsky poll-request.
+uint32_t currentSum = 0;
+uint16_t currentCount = 0;
+uint32_t voltageSum = 0;
+uint16_t voltageCount = 0;
+uint16_t voltageMinimum = 0;
+
+// Don't respond to FAS/FLVSS request until it looks like the voltage received through mavlink as stabilized.
+// This is a try to eliminate most of the low voltage alarms recevied upon model power up.
+boolean voltageStabilized = false;
+uint16_t voltageLast = 0;
+
+// Store a voltage reading received through mavlink
+void storeVoltageReading(uint16_t value)
+{
+  // Try to determine if the voltage has stabilized
+  if(voltageStabilized == false)
+  {
+    // if we have a mavlink voltage, and its less then 0.5V higher then the last sample we got
+    if(value > 3000 && (value - voltageLast)<500)
+    {
+      // The voltage seems to have stabilized
+      voltageStabilized = true;
+    }
+    else
+    {
+      // Reported voltage seems to still increase. Save this sample
+      voltageLast = value; 
+    }
+    return;
+  }
+
+  // Store this reading so we can return the average if we get multiple readings between the polls
+  voltageSum += value;
+  voltageCount++;
+  // Update the minimu voltage if this is lover
+  if(voltageMinimum < 1 || value < voltageMinimum)
+    voltageMinimum = value;
+}
+
+// Store a current reading received through mavlink
+void storeCurrentReading(uint16_t value)
+{
+  // Only store if the voltage seems to have stabilized
+  if(!voltageStabilized)
+    return;
+  currentSum += value;
+  currentCount++;
+}
+
+// Calculates and returns the average voltage value received through mavlink since the last time this function was called.
+// After the function is called the average is cleared.
+// Return 0 if we have no voltage reading
+uint16_t readAndResetAverageVoltage()
+{
+  if(voltageCount < 1)
+    return 0;
+  debugSerial.print(millis());
+  debugSerial.print("\tNumber of samples for voltage average: ");
+  debugSerial.print(voltageCount);
+  debugSerial.println();      
+
+  uint16_t avg = voltageSum / voltageCount;
+
+  voltageSum = 0;
+  voltageCount = 0;
+
+  return avg;
+}
+
+// Return the lowest voltage reading received through mavlink since the last time function was called.
+// After the function is called the value is cleard.
+// Return 0 if we have no new reading
+uint16_t readAndResetMinimumVoltage()
+{
+  uint16_t tmp = voltageMinimum;
+  voltageMinimum = 0;
+  return tmp;  
+}
+
+// Calculates and returns the average current value received through mavlink since the last time this function was called.
+// After the function is called the average is cleared.
+// Return 0 if we have no voltage reading
+uint16_t readAndResetAverageCurrent()
+{
+  if(currentCount < 1)
+    return 0;
+  uint16_t avg = currentSum / currentCount;
+
+  currentSum = 0;
+  currentCount = 0;
+
+  return avg;
+}
 
 //returns the average of Voltage for the 10 last values  
 uint32_t Get_Volt_Average(uint16_t value)  {
@@ -128,5 +227,8 @@ int32_t fetchAccZ()
   }
   return max - min;
 }
+
+
+
 
 

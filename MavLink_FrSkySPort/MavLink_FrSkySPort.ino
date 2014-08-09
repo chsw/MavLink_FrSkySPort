@@ -52,11 +52,11 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 #define START                   1
 #define MSG_RATE            10              // Hertz
 
-#define DEBUG_VFR_HUD
-#define DEBUG_GPS_RAW
-#define DEBUG_ACC
-#define DEBUG_BAT
-#define DEBUG_FRSKY_SENSOR_REQUEST
+//#define DEBUG_VFR_HUD
+//#define DEBUG_GPS_RAW
+//#define DEBUG_ACC
+//#define DEBUG_BAT
+//#define DEBUG_FRSKY_SENSOR_REQUEST
 
 
 // ******************************************
@@ -197,6 +197,8 @@ void _MavLink_receive() {
         ap_voltage_battery = Get_Volt_Average(mavlink_msg_sys_status_get_voltage_battery(&msg));  // 1 = 1mV
         ap_current_battery = Get_Current_Average(mavlink_msg_sys_status_get_current_battery(&msg));     // 1=10mA
 
+        storeVoltageReading(ap_voltage_battery);
+        storeCurrentReading(ap_current_battery);
 #ifdef DEBUG_BAT
         debugSerial.print(millis());
         debugSerial.print("\tMAVLINK_MSG_ID_SYS_STATUS: voltage_battery: ");
@@ -205,13 +207,15 @@ void _MavLink_receive() {
         debugSerial.print(mavlink_msg_sys_status_get_current_battery(&msg));
         debugSerial.println();
 #endif
-
-        if(ap_voltage_battery > 21000) ap_cell_count = 6;
-        else if (ap_voltage_battery > 16800 && ap_cell_count != 6) ap_cell_count = 5;
-        else if(ap_voltage_battery > 12600 && ap_cell_count != 5) ap_cell_count = 4;
-        else if(ap_voltage_battery > 8400 && ap_cell_count != 4) ap_cell_count = 3;
-        else if(ap_voltage_battery > 4200 && ap_cell_count != 3) ap_cell_count = 2;
-        else ap_cell_count = 0;
+        uint8_t temp_cell_count;
+        if(ap_voltage_battery > 21000) temp_cell_count = 6;
+        else if (ap_voltage_battery > 17500) temp_cell_count = 5;
+        else if(ap_voltage_battery > 12750) temp_cell_count = 4;
+        else if(ap_voltage_battery > 8500) temp_cell_count = 3;
+        else if(ap_voltage_battery > 4250) temp_cell_count = 2;
+        else temp_cell_count = 0;
+        if(temp_cell_count > ap_cell_count)
+          ap_cell_count = temp_cell_count;
         break;
       case MAVLINK_MSG_ID_GPS_RAW_INT:   // 24
         ap_fixtype = mavlink_msg_gps_raw_int_get_fix_type(&msg);                               // 0 = No GPS, 1 =No Fix, 2 = 2D Fix, 3 = 3D Fix

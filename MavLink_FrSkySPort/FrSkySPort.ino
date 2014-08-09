@@ -50,6 +50,9 @@ void FrSkySPort_Process(void) {
 }
 
 // ***********************************************************************
+uint16_t sendValueFlvssVoltage = 0;
+uint16_t sendValueFASCurrent = 0;
+uint16_t sendValueFASVoltage = 0;
 void FrSkySPort_ProcessSensorRequest(uint8_t sensorId) 
 {
   uint32_t temp=0;
@@ -59,6 +62,18 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   case SENSOR_ID_FLVSS:
     {
       printDebugPackageSend("FLVSS", nextFLVSS+1, 3);
+      // We need cells to continue
+      if(ap_cell_count < 1)
+        break;
+      // Make sure all the cells gets updated from the same voltage average
+      if(nextFLVSS == 0)
+      {
+        sendValueFlvssVoltage = readAndResetMinimumVoltage();  
+      }
+      // Only respond to request if we have a value
+      if(sendValueFlvssVoltage < 1)
+        break; 
+
       switch(nextFLVSS)
       {
       case 0:
@@ -66,7 +81,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         {
           // First 2 cells
           offset = 0x00 | ((ap_cell_count & 0xF)<<4);
-          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
+          temp=((sendValueFlvssVoltage/(ap_cell_count * 2)) & 0xFFF);
           FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 0,1
         }
         break;
@@ -74,14 +89,14 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         // Optional 3 and 4 Cells
         if(ap_cell_count > 2) {
           offset = 0x02 | ((ap_cell_count & 0xF)<<4);
-          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
+          temp=((sendValueFlvssVoltage/(ap_cell_count * 2)) & 0xFFF);
           FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 2,3
         }
         break;
       case 2:    // Optional 5 and 6 Cells
         if(ap_cell_count > 4) {
           offset = 0x04 | ((ap_cell_count & 0xF)<<4);
-          temp=((ap_voltage_battery/(ap_cell_count * 2)) & 0xFFF);
+          temp=((sendValueFlvssVoltage/(ap_cell_count * 2)) & 0xFFF);
           FrSkySPort_SendPackage(FR_ID_CELLS,(temp << 20) | (temp << 8) | offset);  // Battery cell 2,3
         }
         break;     
@@ -110,13 +125,20 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   case SENSOR_ID_FAS:
     {
       printDebugPackageSend("FAS", nextFAS+1, 2);
+      if(nextFAS == 0)
+      {
+        sendValueFASVoltage = readAndResetAverageVoltage();
+        sendValueFASCurrent = readAndResetAverageCurrent();  
+      }
+      if(sendValueFASVoltage < 1)
+        break;
       switch(nextFAS)
       {
       case 0:
-        FrSkySPort_SendPackage(FR_ID_CURRENT,ap_current_battery / 10);
+        FrSkySPort_SendPackage(FR_ID_VFAS,sendValueFASVoltage/10); // Sends voltage as a VFAS value
         break;
       case 1:
-        FrSkySPort_SendPackage(FR_ID_VFAS,ap_voltage_battery/10); // Sends voltage as a VFAS value
+        FrSkySPort_SendPackage(FR_ID_CURRENT, sendValueFASCurrent / 10);
         break;
       }
       if(++nextFAS > 1)
@@ -203,6 +225,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
     debugSerial.print(sensorId, HEX);
     debugSerial.println();      
 #endif
+    ;
   }
 }
 
@@ -266,4 +289,3 @@ void FrSkySPort_SendPackage(uint16_t id, uint32_t value) {
 
   digitalWrite(led,LOW);
 }
-
