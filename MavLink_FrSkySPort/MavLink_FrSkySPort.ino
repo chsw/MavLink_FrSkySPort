@@ -57,6 +57,8 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 //#define DEBUG_ACC
 //#define DEBUG_BAT
 //#define DEBUG_FRSKY_SENSOR_REQUEST
+//#define DEBUG_AVERAGE_VOLTAGE
+//#define DEBUG_MODE
 
 
 // ******************************************
@@ -182,6 +184,14 @@ void _MavLink_receive() {
       case MAVLINK_MSG_ID_HEARTBEAT:  // 0
         ap_base_mode = (mavlink_msg_heartbeat_get_base_mode(&msg) & 0x80) > 7;
         ap_custom_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
+#ifdef DEBUG_MODE
+        debugSerial.print(millis());
+        debugSerial.print("\tMAVLINK_MSG_ID_SYS_STATUS: base_mode: ");
+        debugSerial.print((mavlink_msg_heartbeat_get_base_mode(&msg) & 0x80) > 7);
+        debugSerial.print(", custom_mode: ");
+        debugSerial.print(mavlink_msg_heartbeat_get_custom_mode(&msg));
+        debugSerial.println();
+#endif              
         MavLink_Connected_timer=millis(); 
         if(!MavLink_Connected); 
         {

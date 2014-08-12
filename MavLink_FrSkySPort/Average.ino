@@ -70,10 +70,13 @@ uint16_t readAndResetAverageVoltage()
 {
   if(voltageCount < 1)
     return 0;
+    
+#ifdef DEBUG_AVERAGE_VOLTAGE
   debugSerial.print(millis());
   debugSerial.print("\tNumber of samples for voltage average: ");
   debugSerial.print(voltageCount);
   debugSerial.println();      
+#endif
 
   uint16_t avg = voltageSum / voltageCount;
 
