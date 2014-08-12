@@ -57,6 +57,7 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 //#define DEBUG_ACC
 //#define DEBUG_BAT
 //#define DEBUG_FRSKY_SENSOR_REQUEST
+//#define DEBUG_AVERAGE_VOLTAGE
 
 
 // ******************************************
