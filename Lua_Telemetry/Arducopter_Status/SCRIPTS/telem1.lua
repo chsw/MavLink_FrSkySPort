@@ -70,7 +70,15 @@ local function getFlightmodeText(mode)
 end
 
 local function init()
---  last_flight_mode = getValue("fuel")
+	-- Prepare a2 for hdop
+	local a1t = model.getTelemetryChannel(1)
+	if a1t.unit ~= 3 or a1t.range ~=1024 or a1t.offset ~=0 
+	then
+		a1t.unit = 3
+		a1t.range = 1024
+		a1t.offset = 0
+		model.setTelemetryChannel(1, a1t)
+	end
 end
 
 local function background()
@@ -110,6 +118,8 @@ local function run(event)
 	lcd.drawText(lcd.getLastPos(), 1, telem_sats, BLINK)
 	lcd.drawText(lcd.getLastPos()+2, 1, "sat)", BLINK)
   end
+  lcd.drawText(120, 15, "Hdop: ", 0)
+  lcd.drawNumber(lcd.getLastPos()+3, 15, getValue("a2")*10, 0+PREC2+LEFT )
 
 -- Line 2
   lcd.drawText(1, 15, getFlightmodeText(getValue("fuel")), 0);
