@@ -195,7 +195,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       FrSkySPort_SendPackage(FR_ID_HEADING,ap_heading * 100);   // 10000 = 100 deg
       break;    
     case 1:        // Sends the analog value from input A0 on Teensy 3.1
-      FrSkySPort_SendPackage(FR_ID_ADC2,adc2);                  
+      FrSkySPort_SendPackage(FR_ID_ADC2, ap_gps_hdop);                  
       break;       
     case 2:
       FrSkySPort_SendPackage(FR_ID_ACCX, fetchAccX());    

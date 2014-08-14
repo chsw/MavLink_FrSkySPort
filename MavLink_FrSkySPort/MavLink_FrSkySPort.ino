@@ -23,7 +23,7 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
  Data transmitted to FrSky Taranis:
  Cell           ( Voltage of Cell=Cells/4. [V] This is my LiPo pack 4S ) 
  Cells         ( Voltage from LiPo [V] )
- A2             ( Analog voltage from input A0 on Teensy 3.1 )
+ A2             ( hdop * 25 ) (8bit resoultion)
  Alt             ( Altitude from baro.  [m] )
  GAlt          ( Altitude from GPS   [m])
  HDG         ( Compass heading  [deg])
@@ -82,6 +82,7 @@ int32_t    ap_latitude = 0;              // 585522540;
 int32_t    ap_longitude = 0;            // 162344467;
 int32_t    ap_gps_altitude = 0;        // 1000 = 1m
 int32_t    ap_gps_speed = 0;
+int8_t     ap_gps_hdop = 256;
 
 // Message #74 VFR_HUD 
 uint32_t  ap_groundspeed = 0;
@@ -94,7 +95,6 @@ int32_t    ap_climb_rate=0;        // 100= 1m/s
 
 // ******************************************
 // These are special for FrSky
-int32_t   adc2 = 0;               // 100 = 1.0V
 int32_t     vfas = 0;                // 100 = 1,0V
 int32_t     gps_status = 0;     // (ap_sat_visible * 10) + ap_fixtype
 // ex. 83 = 8 sattelites visible, 3D lock 
@@ -166,7 +166,6 @@ void loop()  {
 
   FrSkySPort_Process();               // Check FrSky S.Port communication
 
-  adc2 =analogRead(0)/4;               // Read ananog value from A0 (Pin 14). ( Will be A2 value on FrSky LCD)
 }
 
 
@@ -231,6 +230,7 @@ void _MavLink_receive() {
         ap_fixtype = mavlink_msg_gps_raw_int_get_fix_type(&msg);                               // 0 = No GPS, 1 =No Fix, 2 = 2D Fix, 3 = 3D Fix
         ap_sat_visible =  mavlink_msg_gps_raw_int_get_satellites_visible(&msg);          // numbers of visible satelites
         gps_status = (ap_sat_visible*10) + ap_fixtype; 
+        ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(&msg)/4;
         if(ap_fixtype == 3)  {
           ap_latitude = mavlink_msg_gps_raw_int_get_lat(&msg);
           ap_longitude = mavlink_msg_gps_raw_int_get_lon(&msg);
@@ -251,6 +251,8 @@ void _MavLink_receive() {
         debugSerial.print(gps_status);
         debugSerial.print(", gpsspeed: ");
         debugSerial.print(mavlink_msg_gps_raw_int_get_vel(&msg)/100.0);
+        debugSerial.print(", hdop: ");
+        debugSerial.print(mavlink_msg_gps_raw_int_get_eph(&msg)/100.0);
         debugSerial.println();                                     
 #endif
         break;
