@@ -57,4 +57,22 @@ function getApmArmed()
 	return getValue("temp2") > 0
 end
 
+local function getApmHeadingHome()
+  local pilotlat = getValue("pilot-latitude")
+  local pilotlon = getValue("pilot-longitude")
+  local curlat = getValue("latitude")
+  local curlon = getValue("longitude")
+  
+  if pilotlat~=0 and curlat~=0 and pilotlon~=0 and curlon~=0 
+  then 
+    local z1 = math.sin(math.rad(curlon) - math.rad(pilotlon)) * math.cos(math.rad(curlat))
+    local z2 = math.cos(math.rad(pilotlat)) * math.sin(math.rad(curlat)) - math.sin(math.rad(pilotlat)) * math.cos(math.rad(curlat)) * math.cos(math.rad(curlon) - math.rad(pilotlon))
+
+    local head_from = (math.deg(math.atan2(z1, z2)) + 360)%360
+	local head_to = (head_from+180)%360
+	return head_to
+  end
+  return 0
+end
+
 return {init=init, run=run_func}
