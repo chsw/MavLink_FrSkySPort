@@ -57,7 +57,8 @@ function getApmArmed()
 	return getValue("temp2") > 0
 end
 
-local function getApmHeadingHome()
+-- The heading to pilot home position - relative to apm position
+function getApmHeadingHome()
   local pilotlat = getValue("pilot-latitude")
   local pilotlon = getValue("pilot-longitude")
   local curlat = getValue("latitude")
@@ -73,6 +74,12 @@ local function getApmHeadingHome()
 	return head_to
   end
   return 0
+end
+
+-- The heading to pilot home position relative to the current heading.
+function getApmHeadingHomeRelative()
+	local tmp = getApmHeadingHome() - getValue("heading")
+	return (tmp +360)%360
 end
 
 return {init=init, run=run_func}

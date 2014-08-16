@@ -52,9 +52,13 @@ local function run(event)
 -- Current altitude  
   lcd.drawText(170,22, getValue("altitude") .. "m", MIDSIZE)
 -- Home position
-  lcd.drawText(170, 35, "To Home", SMLSIZE)
-  lcd.drawText(170, 45, getValue("distance"), 0)
+  lcd.drawText(170, 34, "To Home", SMLSIZE)
+  lcd.drawText(170, 42, getValue("distance"), 0)
 -- TODO heading home  
+  local relativeHeadingHome = getApmHeadingHomeRelative()
+  lcd.drawText(170, 52, relativeHeadingHome, 0 + PREC1)
+  local integHead, fracHead = math.modf(relativeHeadingHome/45+.5)
+  lcd.drawPixmap(126,34,"/SCRIPTS/BMP/arrow"..(integHead%8)..".bmp")
 end
 
 return { init=init, run=run, background=background}
