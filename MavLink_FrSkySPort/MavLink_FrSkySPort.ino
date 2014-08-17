@@ -82,7 +82,7 @@ int32_t    ap_latitude = 0;              // 585522540;
 int32_t    ap_longitude = 0;            // 162344467;
 int32_t    ap_gps_altitude = 0;        // 1000 = 1m
 int32_t    ap_gps_speed = 0;
-int8_t     ap_gps_hdop = 256;
+uint16_t    ap_gps_hdop = 255;
 
 // Message #74 VFR_HUD 
 uint32_t  ap_groundspeed = 0;
@@ -231,6 +231,9 @@ void _MavLink_receive() {
         ap_sat_visible =  mavlink_msg_gps_raw_int_get_satellites_visible(&msg);          // numbers of visible satelites
         gps_status = (ap_sat_visible*10) + ap_fixtype; 
         ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(&msg)/4;
+        // Max 8 bit
+        if(ap_gps_hdop > 255)
+          ap_gps_hdop = 255;
         if(ap_fixtype == 3)  {
           ap_latitude = mavlink_msg_gps_raw_int_get_lat(&msg);
           ap_longitude = mavlink_msg_gps_raw_int_get_lon(&msg);
