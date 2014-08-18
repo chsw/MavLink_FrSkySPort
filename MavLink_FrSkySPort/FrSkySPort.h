@@ -20,9 +20,8 @@
 #define FR_ID_CELLS_LAST             0x030F      
 #define FR_ID_T1                     0x0400
 #define FR_ID_T2                     0x0410
-#define FR_ID_RPM                    0x050F      
+#define FR_ID_RPM                    0x0500      
 #define FR_ID_FUEL                   0x0600   
-#define FR_ID_CAP_USED               0x0600
 #define FR_ID_ACCX                   0x0700
 #define FR_ID_ACCY                   0x0710
 #define FR_ID_ACCZ                   0x0720
