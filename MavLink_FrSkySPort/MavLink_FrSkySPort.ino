@@ -256,6 +256,8 @@ void _MavLink_receive() {
         debugSerial.print(mavlink_msg_gps_raw_int_get_vel(&msg)/100.0);
         debugSerial.print(", hdop: ");
         debugSerial.print(mavlink_msg_gps_raw_int_get_eph(&msg)/100.0);
+        debugSerial.print(", alt: ");
+        debugSerial.print(mavlink_msg_gps_raw_int_get_alt(&msg));
         debugSerial.println();                                     
 #endif
         break;

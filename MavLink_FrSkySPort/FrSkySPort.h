@@ -28,8 +28,8 @@
 #define FR_ID_LATLONG                0x0800
 #define FR_ID_GPS_ALT                0x0820
 #define FR_ID_SPEED                  0x0830 
-#define FR_ID_HEADING                0x0840
-#define FR_ID_GPS_TIME_DATE_FIRST    0x0850
+#define FR_ID_GPS_COURSE             0x0840
+#define FR_ID_GPS_TIME_DATE          0x0850
 #define FR_ID_A3_FIRST               0x0900
 #define FR_ID_A4_FIRST               0x0910
 #define FR_ID_AIR_SPEED_FIRST        0x0a00
