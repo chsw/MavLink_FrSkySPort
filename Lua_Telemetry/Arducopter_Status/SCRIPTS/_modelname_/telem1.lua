@@ -57,9 +57,6 @@ local function run(event)
   lcd.drawPixmap(190,42,"/SCRIPTS/BMP/arrow"..(integHead%16)..".bmp")
   lcd.drawText(150, 45, "To Home", 0)
   lcd.drawText(150, 55, getValue("distance").."m", 0)
-
-  lcd.drawText(150, 35, relativeHeadingHome, 0 + PREC2)
-
 end
 
 return { init=init, run=run, background=background}
