@@ -43,8 +43,8 @@
 #define FR_ID_SPEED                 0x0830 	//GPS_SPEED_FIRST_ID
 #define FR_ID_GPS_COURSE            0x0840	//GPS_COURS_FIRST_ID
 #define FR_ID_GPS_TIME_DATE         0x0850  //GPS_TIME_DATE_FIRST_ID
-#define	FR_ID_A3_FIRST              0x0900 	//A3_FIRST_ID
-#define	FR_ID_A4_FIRST              0x0910 	//A4_FIRST_ID
+#define FR_ID_A3_FIRST              0x0900 	//A3_FIRST_ID
+#define FR_ID_A4_FIRST              0x0910 	//A4_FIRST_ID
 #define FR_ID_AIR_SPEED_FIRST       0x0A00 	//AIR_SPEED_FIRST_ID
 #define FR_ID_RSSI                  0xF101  // used by the radio system
 #define FR_ID_ADC1                  0xF102  //ADC1_ID
