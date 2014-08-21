@@ -54,7 +54,7 @@ local function run(event)
 -- Home position
   local relativeHeadingHome = getApmHeadingHomeRelative()
   local integHead, fracHead = math.modf(relativeHeadingHome/22.5+.5)
-  lcd.drawPixmap(190,42,"/SCRIPTS/BMP/arrow"..(integHead%16)..".bmp")
+  lcd.drawPixmap(190,42,"/BMP/arrow"..(integHead%16)..".bmp")
   lcd.drawText(150, 45, "To Home", 0)
   lcd.drawText(150, 55, getValue("distance").."m", 0)
   lcd.drawText(150,35, getApmActiveWarning(), 0)
