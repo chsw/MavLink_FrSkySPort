@@ -59,6 +59,7 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 //#define DEBUG_AVERAGE_VOLTAGE
 //#define DEBUG_MODE
+#define DEBUG_STATUS
 
 
 // ******************************************
@@ -69,6 +70,10 @@ uint8_t    ap_base_mode = 0;
 uint32_t  ap_custom_mode = 0;
 uint8_t    ap_system_status = 0;
 uint8_t    ap_mavlink_version = 0;
+
+uint8_t   ap_status_severity = 255 ;
+uint8_t   ap_status_send_count = 0;
+mavlink_statustext_t statustext;
 
 // Message # 1  SYS_STATUS 
 uint16_t  ap_voltage_battery = 0;    // 1000 = 1V
@@ -202,6 +207,21 @@ void _MavLink_receive() {
           }
         }
         break;
+      case MAVLINK_MSG_ID_STATUSTEXT:
+        mavlink_msg_statustext_decode(&msg,&statustext);
+        ap_status_severity = statustext.severity;
+        ap_status_send_count = 5;
+        
+#ifdef DEBUG_STATUS
+        debugSerial.print(millis());
+        debugSerial.print("\tMAVLINK_MSG_ID_STATUSTEXT: severity ");
+        debugSerial.print(statustext.severity);
+        debugSerial.print(", text");
+        debugSerial.print(statustext.text);
+        debugSerial.println();
+#endif
+        break;
+break; 
       case MAVLINK_MSG_ID_SYS_STATUS :   // 1
         ap_voltage_battery = Get_Volt_Average(mavlink_msg_sys_status_get_voltage_battery(&msg));  // 1 = 1mV
         ap_current_battery = Get_Current_Average(mavlink_msg_sys_status_get_current_battery(&msg));     // 1=10mA

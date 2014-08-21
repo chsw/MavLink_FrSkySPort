@@ -212,7 +212,20 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
       break; 
     case 5:
-      FrSkySPort_SendPackage(FR_ID_T2,ap_base_mode); 
+      {
+        uint32_t ap_status_value = 0;
+        if(ap_status_send_count > 0)
+        {
+          ap_status_value = (ap_status_severity*10) & 0x0F;
+          ap_status_send_count--;
+        }
+        if(ap_status_send_count == 0)
+        {
+           ap_status_severity = 255; 
+        }
+        FrSkySPort_SendPackage(FR_ID_T2, ((ap_status_value&0xFF)<<8) | (ap_base_mode & 0x0F)); 
+
+      }
       break;
     case 6:
       FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 

@@ -1,5 +1,10 @@
 local soundfile_base = "/SOUNDS/en/fm_"
 
+local apm_active_warning = 0
+local apm_active_warning_timeout = 0
+
+local outputs = {"armd"}
+
 local function init()
 	-- Prepare a2 for hdop
 	local a1t = model.getTelemetryChannel(1)
@@ -12,8 +17,28 @@ local function init()
 	end
 end
 
-local function run_func()
-end  
+local function decodeApmWarning(severity)
+	-- +10 is added to mavlink-value so 0 represents no warning
+	if      severity == 0 then return ""
+	elseif severity == 10 then return "Emergency"
+	elseif severity == 11 then return "Alert"
+	elseif severity == 12 then return "Critical"
+	elseif severity == 13 then return "Error"
+	elseif severity == 14 then return "Warning"
+	elseif severity == 15 then return "Notice"
+	elseif severity == 16 then return "Info"
+	elseif severity == 17 then return "Debug"
+	end
+	return "Unknown"
+end
+
+function getApmActiveWarning()
+	if apm_active_warning_timeout < getTime()
+	then
+		apm_active_warning = 0
+	end
+	return decodeApmWarning(apm_active_warning)
+end
 
 function getApmFlightmodeNumber()
 	return getValue("fuel")
@@ -54,7 +79,7 @@ function getApmGpsLock()
 end
 
 function getApmArmed()
-	return getValue("temp2") > 0
+	return getValue("temp2")%256 > 0
 end
 
 -- The heading to pilot home position - relative to apm position
@@ -82,4 +107,33 @@ function getApmHeadingHomeRelative()
 	return (tmp +360)%360
 end
 
-return {init=init, run=run_func}
+local function getWarningTimeout()
+	-- 2 second timeout
+	return getTime() + 100*2
+end
+
+local function run_func()
+	-- Handle warning messages from mavlink
+	local t2 = getValue("temp2")
+	t2 = (t2 - (t2%256))/256
+	if(t2 > 0)
+	then
+		if apm_active_warning ~= t2 and t2 ~= 0
+		then
+			apm_active_warning_timeout = getWarningTimeout()
+		end
+		apm_active_warning = t2
+	end
+
+	-- Calculate return value (armed)
+	local armd = 0
+	if(getApmArmed() == true)
+	then
+		armd = 1024
+	else
+		armd = 0
+	end	
+	return armd
+end  
+
+return {init=init, run=run_func, output=outputs}
