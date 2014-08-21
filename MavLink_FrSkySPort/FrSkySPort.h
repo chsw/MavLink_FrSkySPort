@@ -1,7 +1,7 @@
 // Frsky Sensor-ID to use. 
 // ID of sensor. Must be something that is polled by FrSky RX
 
-/* These were used on v1.3 but can't match any with the current OpenTX sources
+/* These were used on v1.3 but don't match any with the current OpenTX sources
 	so are being removed
 
 #define SENSOR_ID1         0x1B		// sensor hub data id
