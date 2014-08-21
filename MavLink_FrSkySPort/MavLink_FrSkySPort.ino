@@ -211,6 +211,7 @@ void _MavLink_receive() {
         mavlink_msg_statustext_decode(&msg,&statustext);
         ap_status_severity = statustext.severity;
         ap_status_send_count = 5;
+        parseStatusText(statustext.severity, statustext.text);
         
 #ifdef DEBUG_STATUS
         debugSerial.print(millis());
