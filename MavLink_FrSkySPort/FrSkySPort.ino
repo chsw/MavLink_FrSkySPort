@@ -216,7 +216,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         uint32_t ap_status_value = 0;
         if(ap_status_send_count > 0)
         {
-          ap_status_value = (ap_status_severity*10) & 0x0F;
+          ap_status_value = (ap_status_severity+10) & 0x0F;
           ap_status_send_count--;
         }
         if(ap_status_send_count == 0)
