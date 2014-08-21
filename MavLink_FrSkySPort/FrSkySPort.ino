@@ -115,6 +115,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         FrSkySPort_SendPackage(FR_ID_VARIO,ap_climb_rate );       // 100 = 1m/s        
         break;
       case 1: 
+      // Sends the altitude value from barometer, first sent value used as zero altitude
         FrSkySPort_SendPackage(FR_ID_ALTITUDE,ap_bar_altitude);   // from barometer, 100 = 1m
         break;
       }
@@ -147,7 +148,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
     break;
   case SENSOR_ID_GPS:
     {
-      printDebugPackageSend("GPS", nextGPS+1, 4);
+      printDebugPackageSend("GPS", nextGPS+1, 5);
       switch(nextGPS)
       {
       case 0:        // Sends the ap_longitude value, setting bit 31 high
@@ -172,13 +173,22 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         if(ap_fixtype==3) {
           FrSkySPort_SendPackage(FR_ID_GPS_ALT,ap_gps_altitude / 10);   // from GPS,  100=1m
         }
+        break;
       case 3:
+      // Note: This is sending GPS Speed now
         if(ap_fixtype==3) {
           //            FrSkySPort_SendPackage(FR_ID_SPEED,ap_groundspeed *20 );  // from GPS converted to km/h
           FrSkySPort_SendPackage(FR_ID_SPEED,ap_gps_speed *20 );  // from GPS converted to km/h
         }
+        break;
+      case 4:
+      // Note: This is sending Course Over Ground from GPS as Heading
+      // before we were sending this: FrSkySPort_SendPackage(FR_ID_HEADING,ap_heading * 100); 
+
+        FrSkySPort_SendPackage(FR_ID_GPS_COURSE, ap_heading * 100);   // 10000 = 100 deg
+        break;
       }
-      if(++nextGPS > 3)
+      if(++nextGPS > 4)
         nextGPS = 0;
     }
     break;    
@@ -186,37 +196,36 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
     printDebugPackageSend("RPM", 1, 1);
     FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2);   //  * 2 if number of blades on Taranis is set to 2
     break;
+
     // Since I don't know the app-id for these values, I just use these two "random"
+  
   case 0x45:
   case 0xC6:
     switch(nextDefault)
     {
-    case 0:        // Sends the compass heading
-      FrSkySPort_SendPackage(FR_ID_HEADING,ap_heading * 100);   // 10000 = 100 deg
-      break;    
-    case 1:        // Sends the analog value from input A0 on Teensy 3.1
-      FrSkySPort_SendPackage(FR_ID_ADC2,adc2);                  
+    case 0:        // Note: We are using A2 - previously reported analog voltage when connected to Teensy - as Hdop
+      FrSkySPort_SendPackage(FR_ID_ADC2, ap_gps_hdop);                  
       break;       
-    case 2:
+    case 1:
       FrSkySPort_SendPackage(FR_ID_ACCX, fetchAccX());    
       break;
-    case 3:
+    case 2:
       FrSkySPort_SendPackage(FR_ID_ACCY, fetchAccY()); 
       break; 
-    case 4:
+    case 3:
       FrSkySPort_SendPackage(FR_ID_ACCZ, fetchAccZ()); 
       break; 
-    case 5:
+    case 4:
       FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
       break; 
-    case 6:
+    case 5:
       FrSkySPort_SendPackage(FR_ID_T2,ap_base_mode); 
       break;
-    case 7:
+    case 6:
       FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
       break;      
     }
-    if(++nextDefault > 7)
+    if(++nextDefault > 6)
       nextDefault = 0;
   default: 
 #ifdef DEBUG_FRSKY_SENSOR_REQUEST
