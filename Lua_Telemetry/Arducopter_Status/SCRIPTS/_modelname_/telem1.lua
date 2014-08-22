@@ -12,10 +12,18 @@ end
 
 local function run(event)
 
--- Battery gauge
-  local telem_mah = getValue("consumption")
-  lcd.drawGauge(1, 55, 90, 8, capacity_max - telem_mah, capacity_max)
-  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
+  if getApmActiveStatusSeverity() ~= ""
+  then
+      lcd.drawText(1, 55, getApmActiveStatusSeverity()..": "..getApmActiveStatusText(), 0)
+  else
+	  -- Battery gauge
+	  local telem_mah = getValue("consumption")
+	  lcd.drawGauge(1, 55, 90, 8, capacity_max - telem_mah, capacity_max)
+	  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
+  end
+  
+    lcd.drawText(150, 55, getValue("distance").."m", 0)
+
 
 -- Model name && status
   lcd.drawText(2,1, model.getInfo().name, MIDSIZE)
@@ -56,8 +64,6 @@ local function run(event)
   local integHead, fracHead = math.modf(relativeHeadingHome/22.5+.5)
   lcd.drawPixmap(190,42,"/BMP/arrow"..(integHead%16)..".bmp")
   lcd.drawText(150, 45, "To Home", 0)
-  lcd.drawText(150, 55, getValue("distance").."m", 0)
-  lcd.drawText(150,35, getApmActiveWarning(), 0)
 end
 
 return { init=init, run=run, background=background}

@@ -281,7 +281,7 @@ void parseStatusText(int32_t severity, String text)
     encodedText = 22;
   else if(text == "Arm: Safety Switch")
     encodedText = 23;
-    
+  ap_status_encodedText = encodedText;
   debugSerial.print(millis());
   debugSerial.print("\tparseStatusText severity: ");
   debugSerial.print(severity);
