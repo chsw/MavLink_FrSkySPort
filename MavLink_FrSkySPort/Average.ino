@@ -235,60 +235,55 @@ int32_t fetchAccZ()
 void parseStatusText(int32_t severity, String text)
 {
   uint8_t encodedText = 0;
-  if(text == "PreArm: RC not calibrated")
-    encodedText = 1;
-  else if(text == "PreArm: RC not calibrated")
-    encodedText = 2;
-  else if(text == "PreArm: Baro not healthy")
-    encodedText = 3;
-  else if(text == "PreArm: Alt disparity")
-    encodedText = 4;
-  else if(text == "PreArm: Compass not healthy")
-    encodedText = 5;
-  else if(text == "PreArm: Compass not calibrated")
-    encodedText = 6;
-  else if(text == "PreArm: Compass offsets too high")
-    encodedText = 7;
-  else if(text == "PreArm: Check mag field")
-    encodedText = 8;
-  else if(text == "PreArm: INS not calibrated")
-    encodedText = 9;
-  else if(text == "PreArm: INS not healthy")
-    encodedText = 10;
-  else if(text == "PreArm: Check Board Voltage")
-    encodedText = 11;
-  else if(text == "PreArm: Ch7&Ch8 Opt cannot be same")
-    encodedText = 12;
-  else if(text == "PreArm: Check FS_THR_VALUE")
-    encodedText = 13;
-  else if(text == "PreArm: Check ANGLE_MAX")
-    encodedText = 14;
-  else if(text == "PreArm: ACRO_BAL_ROLL/PITCH")
-    encodedText = 15;
-  else if(text == "PreArm: GPS Glitch")
-    encodedText = 16;
-  else if(text == "PreArm: Need 3D Fix")
-    encodedText = 17;
-  else if(text == "PreArm: Bad Velocity")
-    encodedText = 18;
-  else if(text == "PreArm: High GPS HDOP")
-    encodedText = 19;
-  else if(text == "Arm: Alt disparity")
-    encodedText = 20;
-  else if(text == "Arm: Thr below FS")
-    encodedText = 21;
-  else if(text == "Arm: Leaning")
-    encodedText = 22;
-  else if(text == "Arm: Safety Switch")
-    encodedText = 23;
+  
+       if(text == "PreArm: RC not calibrated")               encodedText = 1;
+  else if(text == "PreArm: RC not calibrated")               encodedText = 2;
+  else if(text == "PreArm: Baro not healthy")                encodedText = 3;
+  else if(text == "PreArm: Alt disparity")                   encodedText = 4;
+  else if(text == "PreArm: Compass not healthy")             encodedText = 5;
+  else if(text == "PreArm: Compass not calibrated")          encodedText = 6;
+  else if(text == "PreArm: Compass offsets too high")        encodedText = 7;
+  else if(text == "PreArm: Check mag field")                 encodedText = 8;
+  else if(text == "PreArm: INS not calibrated")              encodedText = 9;
+  else if(text == "PreArm: INS not healthy")                 encodedText = 10;
+  else if(text == "PreArm: Check Board Voltage")             encodedText = 11;
+  else if(text == "PreArm: Ch7&Ch8 Opt cannot be same")      encodedText = 12;
+  else if(text == "PreArm: Check FS_THR_VALUE")              encodedText = 13;
+  else if(text == "PreArm: Check ANGLE_MAX")                 encodedText = 14;
+  else if(text == "PreArm: ACRO_BAL_ROLL/PITCH")             encodedText = 15;
+  else if(text == "PreArm: GPS Glitch")                      encodedText = 16;
+  else if(text == "PreArm: Need 3D Fix")                     encodedText = 17;
+  else if(text == "PreArm: Bad Velocity")                    encodedText = 18;
+  else if(text == "PreArm: High GPS HDOP")                   encodedText = 19;
+  
+  else if(text == "Arm: Alt disparity")                      encodedText = 20;
+  else if(text == "Arm: Thr below FS")                       encodedText = 21;
+  else if(text == "Arm: Leaning")                            encodedText = 22;
+  else if(text == "Arm: Safety Switch")                      encodedText = 23;
+
+  else if(text == "AutoTune: Started")                       encodedText = 24;
+  else if(text == "AutoTune: Stopped")                       encodedText = 25;
+  else if(text == "AutoTune: Success")                       encodedText = 26;
+  else if(text == "AutoTune: Failed")                        encodedText = 27;
+
+  else if(text == "Crash: Disarming")                        encodedText = 28;
+  else if(text == "Parachute: Released!")                    encodedText = 29;
+  else if(text == "Parachute: Too Low")                      encodedText = 30;
+  else if(text == "EKF variance")                            encodedText = 31;
+  else if(text == "Low Battery!")                            encodedText = 32;
+  else if(text == "Lost GPS!")                               encodedText = 33;
+  else if(text == "Trim saved")                              encodedText = 34;
+
   ap_status_encodedText = encodedText;
+
+#ifdef DEBUG_PARSE_STATUS_TEXT
   debugSerial.print(millis());
-  debugSerial.print("\tparseStatusText severity: ");
+  debugSerial.print("\tparseStatusText. severity: ");
   debugSerial.print(severity);
   debugSerial.print(", encodedText: ");
   debugSerial.print(encodedText);
   debugSerial.println();
-
+#endif
 }
 
 
