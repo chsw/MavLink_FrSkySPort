@@ -174,12 +174,16 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         }
         break;
       case 3:
+      // Note: This is sending GPS Speed now
         if(ap_fixtype==3) {
           //            FrSkySPort_SendPackage(FR_ID_SPEED,ap_groundspeed *20 );  // from GPS converted to km/h
           FrSkySPort_SendPackage(FR_ID_SPEED,ap_gps_speed *20 );  // from GPS converted to km/h
         }
         break;
       case 4:
+         // Note: This is sending Course Over Ground from GPS as Heading
+         // before we were sending this: FrSkySPort_SendPackage(FR_ID_HEADING,ap_cog * 100); 
+
         FrSkySPort_SendPackage(FR_ID_GPS_COURSE, ap_heading * 100);   // 10000 = 100 deg
         break;
       }
@@ -196,7 +200,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   case 0xC6:
     switch(nextDefault)
     {
-    case 0:        // Sends the analog value from input A0 on Teensy 3.1
+    case 0:        // Note: We are using A2 - previously reported analog voltage when connected to Teensy - as Hdop
       FrSkySPort_SendPackage(FR_ID_ADC2, ap_gps_hdop);                  
       break;       
     case 1:
