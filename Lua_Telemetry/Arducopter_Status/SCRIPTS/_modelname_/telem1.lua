@@ -14,7 +14,7 @@ local function run(event)
 
   if getApmActiveStatusSeverity() ~= ""
   then
-      lcd.drawText(1, 55, getApmActiveStatusSeverity()..": "..getApmActiveStatusText(), 0)
+	  lcd.drawText(1, 55, getApmActiveWarnings(false), 0)
   else
 	  -- Battery gauge
 	  local telem_mah = getValue("consumption")
@@ -35,15 +35,20 @@ local function run(event)
   end
   
  -- gps status
+  local gpsString
   if getApmGpsLock() >= 3.0
   then
-	lcd.drawText(lcd.getLastPos()+3, 1, "GPS: 3D sat "..getApmGpsSats(), 0)
+	gpsString = "3D GPS: "..getApmGpsHdop()
   else
-	lcd.drawText(lcd.getLastPos()+3, 1, "No lock("..getApmGpsSats().."sat)", BLINK)
+	gpsString = "no GPS: "..getApmGpsHdop()
   end
-  lcd.drawText(120, 15, "Hdop: ", 0)
-  lcd.drawNumber(lcd.getLastPos()+3, 15, getApmGpsHdop(), 0+PREC2+LEFT )
---  lcd.drawText(120,15, getSounds(), 0)
+  if getApmGpsHdop() <= 2.0
+  then
+	lcd.drawText(lcd.getLastPos()+3, 1, gpsString, 0)
+  else
+	lcd.drawText(lcd.getLastPos()+3, 1, gpsString, BLINK)
+  end
+
 -- Line 2
   lcd.drawText(1, 15, getApmFlightmodeText(), 0);
 -- Line 3
