@@ -59,6 +59,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   uint8_t offset;
   switch(sensorId)
   {
+  #ifdef SENSOR_ID_FLVSS
   case SENSOR_ID_FLVSS:
     {
       printDebugPackageSend("FLVSS", nextFLVSS+1, 3);
@@ -106,6 +107,8 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextFLVSS=0;
     }
     break;
+  #endif
+  #ifdef SENSOR_ID_VARIO
   case SENSOR_ID_VARIO:
     {
       printDebugPackageSend("VARIO", nextVARIO+1, 2);
@@ -122,6 +125,8 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextVARIO = 0;
     }
     break;
+  #endif
+  #ifdef SENSOR_ID_FAS
   case SENSOR_ID_FAS:
     {
       printDebugPackageSend("FAS", nextFAS+1, 2);
@@ -145,6 +150,8 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextFAS = 0;
     }
     break;
+  #endif
+  #ifdef SENSOR_ID_GPS
   case SENSOR_ID_GPS:
     {
       printDebugPackageSend("GPS", nextGPS+1, 5);
@@ -191,11 +198,14 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextGPS = 0;
     }
     break;    
+  #endif
+  #ifdef SENSOR_ID_RPM
   case SENSOR_ID_RPM:
     printDebugPackageSend("RPM", 1, 1);
     FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2);   //  * 2 if number of blades on Taranis is set to 2
     break;
     // Since I don't know the app-id for these values, I just use these two "random"
+  #endif
   case 0x45:
   case 0xC6:
     switch(nextDefault)

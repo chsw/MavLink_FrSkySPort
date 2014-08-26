@@ -10,6 +10,8 @@
 
 */
 
+// To disable a specific sensor, just comment out the sensor_id define (place // first on the line defining the sensor id)
+
 #define SENSOR_ID_VARIO             0x00 // 0
 #define SENSOR_ID_FLVSS             0xA1 // 1
 #define SENSOR_ID_FAS               0x22 // 2
