@@ -124,7 +124,6 @@ uint32_t ap_yaw_speed = 0;     //Yaw angular speed (rad/s)
 
 
 // Message #253 MAVLINK_MSG_ID_STATUSTEXT
-uint8_t   ap_severity = 0;
 uint8_t   ap_status_severity = 255;
 uint8_t   ap_status_send_count = 0;
 uint8_t   ap_status_encodedText = 0;
@@ -135,7 +134,7 @@ mavlink_statustext_t statustext;
   MAV_SEVERITY_EMERGENCY=0, System is unusable. This is a "panic" condition.
   MAV_SEVERITY_ALERT=1, Action should be taken immediately. Indicates error in non-critical systems.
   MAV_SEVERITY_CRITICAL=2, Action must be taken immediately. Indicates failure in a primary system.
-  MAV_SEVERITY_ERROR=3, Indicates an error in secondary/redundant systems. | */
+  MAV_SEVERITY_ERROR=3, Indicates an error in secondary/redundant systems. | 
   MAV_SEVERITY_WARNING=4, Indicates about a possible future error if this is not resolved within a given timeframe. Example would be a low battery warning.
   MAV_SEVERITY_NOTICE=5, An unusual event has occured, though not an error condition. This should be investigated for the root cause.
   MAV_SEVERITY_INFO=6, Normal operational messages. Useful for logging. No action is required for these messages.
@@ -259,7 +258,6 @@ void _MavLink_receive() {
         ap_status_severity = statustext.severity;
         ap_status_send_count = 5;
         parseStatusText(statustext.severity, statustext.text);
-        ap_severity = (statustext.severity);
         
 #ifdef DEBUG_STATUS
         debugSerial.print(millis());
