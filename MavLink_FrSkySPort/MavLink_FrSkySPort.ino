@@ -75,7 +75,7 @@ AccZ            ( Z Axis average vibration m/s?)
 uint8_t    ap_type = 0;
 uint8_t    ap_autopilot = 0;
 uint8_t    ap_base_mode = 0;
-uint32_t   ap_custom_mode = 0;
+int32_t    ap_custom_mode = -1;
 uint8_t    ap_system_status = 0;
 uint8_t    ap_mavlink_version = 0;
 

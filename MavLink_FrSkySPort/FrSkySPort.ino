@@ -249,7 +249,11 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       }
       break;
     case 6:
-      FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
+      // Don't send until we have received a value through mavlink
+      if(ap_custom_mode >= 0)
+      {
+        FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
+      }
       break;      
     }
     if(++nextDefault > 6)
