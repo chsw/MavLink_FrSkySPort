@@ -68,7 +68,7 @@ AccZ            ( Z Axis average vibration m/s?)
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 
 //#define DEBUG_AVERAGE_VOLTAGE
-//#define DEBUG_PARSE_STATUS_TEXT
+#define DEBUG_PARSE_STATUS_TEXT
 
 // ******************************************
 // Message #0  HEARTHBEAT 
@@ -80,7 +80,7 @@ uint8_t    ap_system_status = 0;
 uint8_t    ap_mavlink_version = 0;
 
 // Message # 1  SYS_STATUS 
-uint16_t  ap_voltage_battery = 0;       // 1000 = 1V
+uint16_t   ap_voltage_battery = 0;       // 1000 = 1V
 int16_t    ap_current_battery = 0;      //  10 = 1A
 //int8_t    ap_battery_remaining = 0;   // Remaining battery energy: (0%: 0, 100%: 100), -1: autopilot estimate the remaining battery
 
@@ -124,9 +124,9 @@ uint32_t ap_yaw_speed = 0;     //Yaw angular speed (rad/s)
 
 
 // Message #253 MAVLINK_MSG_ID_STATUSTEXT
-uint8_t   ap_status_severity = 255;
-uint8_t   ap_status_send_count = 0;
-uint8_t   ap_status_encodedText = 0;
+uint16_t   ap_status_severity = 255;
+uint16_t   ap_status_send_count = 0;
+uint16_t   ap_status_text_id = 0;
 mavlink_statustext_t statustext;
 
 /*

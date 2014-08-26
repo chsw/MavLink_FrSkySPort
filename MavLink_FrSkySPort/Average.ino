@@ -234,54 +234,64 @@ int32_t fetchAccZ()
 
 void parseStatusText(int32_t severity, String text)
 {
-  uint8_t encodedText = 0;
+  uint16_t textId = 0;
   
-       if(text == "PreArm: RC not calibrated")               encodedText = 1;
-  else if(text == "PreArm: RC not calibrated")               encodedText = 2;
-  else if(text == "PreArm: Baro not healthy")                encodedText = 3;
-  else if(text == "PreArm: Alt disparity")                   encodedText = 4;
-  else if(text == "PreArm: Compass not healthy")             encodedText = 5;
-  else if(text == "PreArm: Compass not calibrated")          encodedText = 6;
-  else if(text == "PreArm: Compass offsets too high")        encodedText = 7;
-  else if(text == "PreArm: Check mag field")                 encodedText = 8;
-  else if(text == "PreArm: INS not calibrated")              encodedText = 9;
-  else if(text == "PreArm: INS not healthy")                 encodedText = 10;
-  else if(text == "PreArm: Check Board Voltage")             encodedText = 11;
-  else if(text == "PreArm: Ch7&Ch8 Opt cannot be same")      encodedText = 12;
-  else if(text == "PreArm: Check FS_THR_VALUE")              encodedText = 13;
-  else if(text == "PreArm: Check ANGLE_MAX")                 encodedText = 14;
-  else if(text == "PreArm: ACRO_BAL_ROLL/PITCH")             encodedText = 15;
-  else if(text == "PreArm: GPS Glitch")                      encodedText = 16;
-  else if(text == "PreArm: Need 3D Fix")                     encodedText = 17;
-  else if(text == "PreArm: Bad Velocity")                    encodedText = 18;
-  else if(text == "PreArm: High GPS HDOP")                   encodedText = 19;
+       if(text == "PreArm: RC not calibrated")               textId = 1;
+  else if(text == "PreArm: RC not calibrated")               textId = 2;
+  else if(text == "PreArm: Baro not healthy")                textId = 3;
+  else if(text == "PreArm: Alt disparity")                   textId = 4;
+  else if(text == "PreArm: Compass not healthy")             textId = 5;
+  else if(text == "PreArm: Compass not calibrated")          textId = 6;
+  else if(text == "PreArm: Compass offsets too high")        textId = 7;
+  else if(text == "PreArm: Check mag field")                 textId = 8;
+  else if(text == "PreArm: INS not calibrated")              textId = 9;
+  else if(text == "PreArm: INS not healthy")                 textId = 10;
+  else if(text == "PreArm: Check Board Voltage")             textId = 11;
+  else if(text == "PreArm: Ch7&Ch8 Opt cannot be same")      textId = 12;
+  else if(text == "PreArm: Check FS_THR_VALUE")              textId = 13;
+  else if(text == "PreArm: Check ANGLE_MAX")                 textId = 14;
+  else if(text == "PreArm: ACRO_BAL_ROLL/PITCH")             textId = 15;
+  else if(text == "PreArm: GPS Glitch")                      textId = 16;
+  else if(text == "PreArm: Need 3D Fix")                     textId = 17;
+  else if(text == "PreArm: Bad Velocity")                    textId = 18;
+  else if(text == "PreArm: High GPS HDOP")                   textId = 19;
   
-  else if(text == "Arm: Alt disparity")                      encodedText = 20;
-  else if(text == "Arm: Thr below FS")                       encodedText = 21;
-  else if(text == "Arm: Leaning")                            encodedText = 22;
-  else if(text == "Arm: Safety Switch")                      encodedText = 23;
+  else if(text == "Arm: Alt disparity")                      textId = 20;
+  else if(text == "Arm: Thr below FS")                       textId = 21;
+  else if(text == "Arm: Leaning")                            textId = 22;
+  else if(text == "Arm: Safety Switch")                      textId = 23;
 
-  else if(text == "AutoTune: Started")                       encodedText = 24;
-  else if(text == "AutoTune: Stopped")                       encodedText = 25;
-  else if(text == "AutoTune: Success")                       encodedText = 26;
-  else if(text == "AutoTune: Failed")                        encodedText = 27;
+  else if(text == "AutoTune: Started")                       textId = 24;
+  else if(text == "AutoTune: Stopped")                       textId = 25;
+  else if(text == "AutoTune: Success")                       textId = 26;
+  else if(text == "AutoTune: Failed")                        textId = 27;
 
-  else if(text == "Crash: Disarming")                        encodedText = 28;
-  else if(text == "Parachute: Released!")                    encodedText = 29;
-  else if(text == "Parachute: Too Low")                      encodedText = 30;
-  else if(text == "EKF variance")                            encodedText = 31;
-  else if(text == "Low Battery!")                            encodedText = 32;
-  else if(text == "Lost GPS!")                               encodedText = 33;
-  else if(text == "Trim saved")                              encodedText = 34;
+  else if(text == "Crash: Disarming")                        textId = 28;
+  else if(text == "Parachute: Released!")                    textId = 29;
+  else if(text == "Parachute: Too Low")                      textId = 30;
+  else if(text == "EKF variance")                            textId = 31;
+  else if(text == "Low Battery!")                            textId = 32;
+  else if(text == "Lost GPS!")                               textId = 33;
+  else if(text == "Trim saved")                              textId = 34;
+  
+  // These texts will be ignored (textId = 0)
+  else if(text == "GROUND START")                            textId = 0;       
+  else if(text == "Initialising APM...")                     textId = 0;       
+  else if(text == "Calibrating barometer")                   textId = 0;       
+  else if(text == "barometer calibration complete")          textId = 0;
+  // Unknown text (textId = 1024)
+  else                                                       textId = 1023;
 
-  ap_status_encodedText = encodedText;
+  ap_status_text_id = textId;
 
 #ifdef DEBUG_PARSE_STATUS_TEXT
   debugSerial.print(millis());
   debugSerial.print("\tparseStatusText. severity: ");
   debugSerial.print(severity);
-  debugSerial.print(", encodedText: ");
-  debugSerial.print(encodedText);
+  debugSerial.print(", text: \"");
+  debugSerial.print(text);
+  debugSerial.print("\" textId: ");
+  debugSerial.print(textId);
   debugSerial.println();
 #endif
 }

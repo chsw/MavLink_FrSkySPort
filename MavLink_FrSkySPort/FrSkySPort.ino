@@ -233,16 +233,16 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         // bit 6-15: number representing a specific text
         uint32_t ap_status_value = ap_base_mode&0x01;
         // If we have a message-text to report (we send it multiple times to make sure it arrives even on telemetry glitches)
-        if(ap_status_send_count > 0)
+        if(ap_status_send_count > 0 && ap_status_text_id > 0)
         {
           // Add bits 2-15
-          ap_status_value |= (((ap_status_severity+1)&0x0F)<<1) |((ap_status_encodedText&0x3FF)<<5);
+          ap_status_value |= (((ap_status_severity+1)&0x0F)<<1) |((ap_status_text_id&0x3FF)<<5);
           ap_status_send_count--;
           if(ap_status_send_count == 0)
           {
              // Reset severity and text-message after we have sent the message
              ap_status_severity = 0; 
-             ap_status_encodedText = 0;
+             ap_status_text_id = 0;
           }          
         }
         FrSkySPort_SendPackage(FR_ID_T2, ap_status_value); 
