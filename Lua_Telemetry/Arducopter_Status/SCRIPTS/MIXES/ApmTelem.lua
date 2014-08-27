@@ -1,8 +1,6 @@
 local soundfile_base = "/SOUNDS/en/fm_"
 
-local apm_active_warning = 0
-local apm_active_warning_textnr = 0
-local apm_active_warning_timeout = 0
+local apm_status_message = {severity = 0, textnr = 0, timestamp=0}
 
 local outputs = {"armd"}
 
@@ -80,7 +78,7 @@ function getApmActiveStatusSeverity()
 	then 
 		return ""
 	end
-	return decodeApmWarning(apm_active_warning)
+	return decodeApmWarning(apm_status_message.severity)
 end
 
 function getApmActiveStatusText()
@@ -88,7 +86,7 @@ function getApmActiveStatusText()
 	then 
 		return ""
 	end
-	return decodeApmStatusText(apm_active_warning_textnr)
+	return decodeApmStatusText(apm_status_message.textnr)
 end
 
 function getApmActiveWarnings(includeUnknown)
@@ -105,17 +103,15 @@ function getApmActiveWarnings(includeUnknown)
 		return ""
 	end
 	
-	return severity..apm_active_warning_textnr;
+	return severity..apm_status_message.textnr;
 end
 
 function isApmActiveStatus()
-	if apm_active_warning_timeout < getTime()
+	if apm_status_message.timestamp > 0
 	then
-		apm_active_warning = 0
-		apm_active_warning_textnr = 0
-		return false
+		return true
 	end
-	return true
+	return false
 end
 
 function getApmFlightmodeNumber()
@@ -201,12 +197,18 @@ local function run_func()
 	local status_textnr = t2%0x400;
 	if(status_severity > 0)
 	then
-		if apm_active_warning ~= status_severity and status_severity ~= 0
+		if status_severity ~= apm_status_message.severity or status_textnr ~= apm_status_message.textnr
 		then
-			apm_active_warning_timeout = getWarningTimeout()
+			apm_status_message.severity = status_severity
+			apm_status_message.textnr = status_textnr
+			apm_status_message.timestamp = getTime()
 		end
-		apm_active_warning = status_severity
-		apm_active_warning_textnr = status_textnr
+	end
+	if apm_status_message.timestamp > 0 and (apm_status_message.timestamp + 2*100) < getTime()
+	then
+		apm_status_message.severity = 0
+		apm_status_message.textnr = 0
+		apm_status_message.timestamp = 0
 	end
 
 	-- Calculate return value (armed)
