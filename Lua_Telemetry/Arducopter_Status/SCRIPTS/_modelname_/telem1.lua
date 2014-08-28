@@ -12,6 +12,7 @@ end
 
 local function run(event)
 
+
   if getApmActiveStatusSeverity() ~= ""
   then
 	  lcd.drawText(1, 55, getApmActiveWarnings(false), 0)
@@ -22,7 +23,6 @@ local function run(event)
 	  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
   end
   
-    lcd.drawText(150, 55, getValue("distance").."m", 0)
 
 
 -- Model name && status
@@ -33,20 +33,27 @@ local function run(event)
   else
 	lcd.drawText(lcd.getLastPos()+3, 1, "SAFE", MIDSIZE)
   end
+-- Timer
+  local timer = model.getTimer(0)
+  local pos = 155 --lcd.getLastPos()+10
+  lcd.drawText(pos, 1, "Timer", SMLSIZE) 
+  lcd.drawTimer(pos,7, timer.value, MIDSIZE)  
+-- Current altitude  
+  lcd.drawText(145, 30, getValue("altitude") .. "m", MIDSIZE)
   
  -- gps status
-  local gpsString
+  local gpsString = getApmGpsHdop()
   if getApmGpsLock() >= 3.0
   then
-	gpsString = "3D GPS: "..getApmGpsHdop()
+	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gps3d.bmp")
   else
-	gpsString = "no GPS: "..getApmGpsHdop()
+	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gpsno.bmp")
   end
   if getApmGpsHdop() <= 2.0
   then
-	lcd.drawText(lcd.getLastPos()+3, 1, gpsString, 0)
+	lcd.drawText(190, 30, getApmGpsHdop(), 0)
   else
-	lcd.drawText(lcd.getLastPos()+3, 1, gpsString, BLINK)
+	lcd.drawText(190, 30,  getApmGpsHdop(), BLINK)
   end
 
 -- Line 2
@@ -59,16 +66,25 @@ local function run(event)
   lcd.drawText(1, 45, "Peaks: "..getValue("vfas-min").."V ("..getValue("cell-min-min").."V) "..getValue("current-max").."A "..getValue("power-max").."W", 0)
 
 -- Right column:
--- Timer
-  local timer = model.getTimer(0)
-  lcd.drawTimer(170,10, timer.value, MIDSIZE)
--- Current altitude  
-  lcd.drawText(170,22, getValue("altitude") .. "m", MIDSIZE)
+
+
 -- Home position
   local relativeHeadingHome = getApmHeadingHomeRelative()
   local integHead, fracHead = math.modf(relativeHeadingHome/22.5+.5)
   lcd.drawPixmap(190,42,"/SCRIPTS/BMP/arrow"..(integHead%16)..".bmp")
-  lcd.drawText(150, 45, "To Home", 0)
+  lcd.drawText(145, 45, "To Home", 0)
+  lcd.drawText(145, 55, getValue("distance").."m", 0)
+
+  local new_messages = false
+  if global_new_messages ~= nil
+  then
+	new_messages = global_new_messages
+  end
+  
+  if new_messages
+  then
+    lcd.drawText(145, 20, "New Msg", BLINK)
+  end
 end
 
 return { init=init, run=run, background=background}
