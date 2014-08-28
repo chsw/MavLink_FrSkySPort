@@ -5,6 +5,7 @@ end
 local messages = {}
 local last_message = ""
 
+global_new_messages = false
 
 local function asTimeNumber(number)
 	if number < 10
@@ -32,6 +33,7 @@ local function handleMessage()
   end
   if last_message ~= new_message and new_message ~= ""
   then
+    global_new_messages = true
     last_message = new_message
 	local i = 1
     while messages[i] ~= nil 
@@ -54,6 +56,8 @@ end
 
 local function run(event)
   handleMessage()
+  
+  global_new_messages = false
   
   local i = 1
   local warnings_received = false
