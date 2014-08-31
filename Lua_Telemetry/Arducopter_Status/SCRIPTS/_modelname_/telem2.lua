@@ -1,12 +1,11 @@
-local function init()
-
-end
-
 local messages = {}
-local last_message = ""
-
+local last_message = nil
 global_new_messages = false
 
+local function init()
+end
+
+-- Format a number to a string with 2 digits. 
 local function asTimeNumber(number)
 	if number < 10
 	then
@@ -15,6 +14,7 @@ local function asTimeNumber(number)
 	return number
 end
 
+-- Takes a time (10 msec resolution) and formats as min:sec
 local function formatTimestamp(timestamp)
   local iDiff, fDiff = math.modf((getTime() - timestamp)/100)
   local sec = iDiff%60
@@ -23,18 +23,14 @@ local function formatTimestamp(timestamp)
   return ret
 end
 
+-- Looks for new messages and builds a list of messages
 local function handleMessage()
   -- Fetch message
-  local new_message = getApmActiveWarnings(true)
-  -- Check if message is stopped
-  if new_message == "" and last_message ~= ""
-  then
-	last_message = ""
-  end
-  if last_message ~= new_message and new_message ~= ""
-  then
+  local message = getApmActiveStatus()
+  if message ~= nil and (last_message == nil or message.timestamp ~= last_message.timestamp)
+  then 
     global_new_messages = true
-    last_message = new_message
+    last_message = message
 	local i = 1
     while messages[i] ~= nil 
 	do
@@ -44,21 +40,24 @@ local function handleMessage()
 	do
 	  messages[i] = messages[i-1]
 	end
-	messages[1] = {text = new_message, timestamp = getTime() }
+	messages[1] = {text = message.message, timestamp = message.timestamp }
   end
 end
 
-
+-- Scan for messages when not visible
 local function background()
   handleMessage()
 end
 
 
 local function run(event)
+  -- Scan for new messages
   handleMessage()
-  
+
+  -- Reset global flag since we now have shown any new messages
   global_new_messages = false
   
+  -- Loop through messages
   local i = 1
   local warnings_received = false
   for i=1, 10, 1
@@ -69,6 +68,7 @@ local function run(event)
 		warnings_received = true
 	end
   end
+  -- No messages received - show text
   if warnings_received == false
   then
 	lcd.drawFilledRectangle(10, 10, 190, 45, GREY_DEFAULT)

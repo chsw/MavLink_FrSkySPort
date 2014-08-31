@@ -73,6 +73,14 @@ local function decodeApmStatusText(textnr)
 	return ""
 end
 
+function getApmActiveStatus()
+	if apm_status_message.timestamp == 0
+	then 
+		return nil
+	end
+	return {timestamp = apm_status_message.timestamp, message = getApmActiveWarnings(true)}
+end
+
 function getApmActiveStatusSeverity()
 	if isApmActiveStatus() == false
 	then 
@@ -153,7 +161,7 @@ function getApmGpsLock()
 end
 
 function getApmArmed()
-	return getValue(210)%256 > 0 -- Temp2
+	return getValue(210)%2 > 0 -- Temp2
 end
 
 

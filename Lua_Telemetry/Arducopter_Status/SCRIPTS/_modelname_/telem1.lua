@@ -12,19 +12,20 @@ end
 
 local function run(event)
 
-
-  if getApmActiveStatusSeverity() ~= ""
+  -- Fetch current status
+  local status = getApmActiveStatus()
+  -- If we have a status - display the message
+  if status ~= nil
   then
-	  lcd.drawText(1, 55, getApmActiveWarnings(false), 0)
+	lcd.drawText(1, 55, status.message, 0)
+  -- Ohterwise show the battery gauge
   else
 	  -- Battery gauge
 	  local telem_mah = getValue("consumption")
 	  lcd.drawGauge(1, 55, 90, 8, capacity_max - telem_mah, capacity_max)
 	  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
   end
-  
-
-
+ 
 -- Model name && status
   lcd.drawText(2,1, model.getInfo().name, MIDSIZE)
   if getApmArmed()
@@ -33,7 +34,8 @@ local function run(event)
   else
 	lcd.drawText(lcd.getLastPos()+3, 1, "SAFE", MIDSIZE)
   end
--- Timer
+
+  -- Timer
   local timer = model.getTimer(0)
   local pos = 155 --lcd.getLastPos()+10
   lcd.drawText(pos, 1, "Timer", SMLSIZE) 
@@ -75,13 +77,8 @@ local function run(event)
   lcd.drawText(145, 45, "To Home", 0)
   lcd.drawText(145, 55, getValue("distance").."m", 0)
 
-  local new_messages = false
-  if global_new_messages ~= nil
-  then
-	new_messages = global_new_messages
-  end
-  
-  if new_messages
+-- Inform if there are unread messages
+  if global_new_messages ~= nil and global_new_messages == true
   then
     lcd.drawText(145, 20, "New Msg", BLINK)
   end
