@@ -301,7 +301,7 @@ break;
         gps_status = (ap_sat_visible*10) + ap_fixtype; 
         ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(&msg)/4;
         // Max 8 bit
-        if(ap_gps_hdop > 255)
+        if(ap_gps_hdop == 0 || ap_gps_hdop > 255)
           ap_gps_hdop = 255;
         if(ap_fixtype == 3)  {
           ap_latitude = mavlink_msg_gps_raw_int_get_lat(&msg);

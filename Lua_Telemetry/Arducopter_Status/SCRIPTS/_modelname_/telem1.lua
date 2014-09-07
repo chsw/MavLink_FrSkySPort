@@ -44,18 +44,22 @@ local function run(event)
   lcd.drawText(145, 30, getValue("altitude") .. "m", MIDSIZE)
   
  -- gps status
-  local gpsString = getApmGpsHdop()
+  local gpsHdop = getApmGpsHdop()
   if getApmGpsLock() >= 3.0
   then
 	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gps3d.bmp")
   else
 	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gpsno.bmp")
   end
-  if getApmGpsHdop() <= 2.0
+  if gpsHdop ==  0.0 then
+	lcd.drawText(190, 30, "---", BLINK)
+  elseif gpsHdop == 10.24 then
+	lcd.drawText(190, 30, "HIGH", BLINK)
+  elseif gpsHdop <= 2.0
   then
-	lcd.drawText(190, 30, getApmGpsHdop(), 0)
+	lcd.drawText(190, 30, gpsHdop, 0)
   else
-	lcd.drawText(190, 30,  getApmGpsHdop(), BLINK)
+	lcd.drawText(190, 30,  gpsHdop, BLINK)
   end
 
 -- Line 2
