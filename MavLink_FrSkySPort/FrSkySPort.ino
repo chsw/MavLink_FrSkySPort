@@ -289,16 +289,32 @@ void printDebugPackageSend(char* pkg_name, uint8_t pkg_nr, uint8_t pkg_max)
 // ***********************************************************************
 void FrSkySPort_SendByte(uint8_t byte) {
 
-  _FrSkySPort_Serial.write(byte);
+  if(byte == 0x7E)
+  {
+    _FrSkySPort_Serial.write(0x7D);
+    _FrSkySPort_Serial.write(0x5E);
+  }
+  else if(byte == 0x7D)
+  {
+    _FrSkySPort_Serial.write(0x7D);
+    _FrSkySPort_Serial.write(0x5D);
+  }
+  else
+  {
+    _FrSkySPort_Serial.write(byte);
+  }
+  FrSkySPort_UpdateCRC(byte);
+}
 
-  // CRC update
+void FrSkySPort_UpdateCRC(uint8_t byte)
+{
+   // CRC update
   crc += byte;         //0-1FF
   crc += crc >> 8;   //0-100
   crc &= 0x00ff;
   crc += crc >> 8;   //0-0FF
-  crc &= 0x00ff;
+  crc &= 0x00ff; 
 }
-
 
 // ***********************************************************************
 void FrSkySPort_SendCrc() {
