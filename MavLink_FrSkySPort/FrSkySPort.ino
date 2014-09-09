@@ -312,8 +312,6 @@ void FrSkySPort_UpdateCRC(uint8_t byte)
   crc += byte;         //0-1FF
   crc += crc >> 8;   //0-100
   crc &= 0x00ff;
-  crc += crc >> 8;   //0-0FF
-  crc &= 0x00ff; 
 }
 
 // ***********************************************************************
