@@ -15,19 +15,24 @@ Changes:
 - Delays sending the voltage/current until the voltage reading through mavlink has stabilized. This should minimize the false low battery-warnings upon model powerup.
 - GPS hdop on A2
 
-Scripts
-Arducopter_Status
+Lua scripts: Arducopter_Status
+
+Mixer scripts:
 
 ApmTelem.lua:
-This is a mixer script thats configures A2 for usage as hdop. It also publishes a set of methods used by other scripts.
+This script configures A2 for usage as hdop and exports arming-status as an output. This status can be used to for example control a timer.
+It also publishes a set of methods that can be used by other scripts.
 
 ApmSounds.lua: 
-This is a mixer script that announces changes in flightmode. Some flightmodes (auto-modes) will have be repeated at a given intervall. 
+This is a mixer script that announces (plays a soundfile) when the flightmode changes. Some flightmodes (auto-modes) will be repeated at a given intervall. 
 
 
-Lua telemetry screens
+Lua telemetry screens:
+
 telem1.lua: 
-Shows status of different parameters.
+Shows status of different parameters received through mavlink. 
+Some of this parameters are current flightmode, gps status, battery status, current consumption and power usage.
+It also displays (briefly) any status messages received from ardupilot.
 
 telem2.lua:
 Shows a log with received status messages from ardupilot. 
