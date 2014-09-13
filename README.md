@@ -14,6 +14,7 @@ Changes:
 - Changed the averaging for voltage/current to be more accurate to the voltage/current fluctuations. Hoping of increasing the accuracy of the mAh-counter. Use FAS as both voltage/current source.
 - Delays sending the voltage/current until the voltage reading through mavlink has stabilized. This should minimize the false low battery-warnings upon model powerup.
 - GPS hdop on A2
+- Temp2 contains both arming status (armed if the value is uneven) and status message number if the text received through mavlink was recognized.
 
 Lua scripts: Arducopter_Status
 
