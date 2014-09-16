@@ -270,8 +270,8 @@ void _MavLink_receive() {
         break;
 break; 
       case MAVLINK_MSG_ID_SYS_STATUS :   // 1
-        ap_voltage_battery = Get_Volt_Average(mavlink_msg_sys_status_get_voltage_battery(&msg));  // 1 = 1mV
-        ap_current_battery = Get_Current_Average(mavlink_msg_sys_status_get_current_battery(&msg));     // 1=10mA
+        ap_voltage_battery = mavlink_msg_sys_status_get_voltage_battery(&msg);  // 1 = 1mV
+        ap_current_battery = mavlink_msg_sys_status_get_current_battery(&msg);     // 1=10mA
 
         storeVoltageReading(ap_voltage_battery);
         storeCurrentReading(ap_current_battery);

@@ -14,7 +14,7 @@ int nrSamplesZ = 0;
 // Used to calculate the average voltage/current between each frksy poll-request.
 // A bit overkill since we most of the time only receive one sample from mavlink between each poll.
 // voltageMinimum is used to report the lowest value received through mavlink between each poll frsky poll-request.
-uint32_t currentSum = 0;
+int32_t currentSum = 0;
 uint16_t currentCount = 0;
 uint32_t voltageSum = 0;
 uint16_t voltageCount = 0;
@@ -54,7 +54,7 @@ void storeVoltageReading(uint16_t value)
 }
 
 // Store a current reading received through mavlink
-void storeCurrentReading(uint16_t value)
+void storeCurrentReading(int16_t value)
 {
   // Only store if the voltage seems to have stabilized
   if(!voltageStabilized)
@@ -103,38 +103,13 @@ uint16_t readAndResetAverageCurrent()
 {
   if(currentCount < 1)
     return 0;
-  uint16_t avg = currentSum / currentCount;
+  
+  uint16_t avg = currentSum >= 0 ? currentSum / currentCount : 0;
 
   currentSum = 0;
   currentCount = 0;
 
   return avg;
-}
-
-//returns the average of Voltage for the 10 last values  
-uint32_t Get_Volt_Average(uint16_t value)  {
-  uint8_t i;
-  uint32_t sum=0;
-
-  for(i=9;i>0;i--)  {
-    Volt_AverageBuffer[i]=Volt_AverageBuffer[i-1];
-    sum+=Volt_AverageBuffer[i];
-  }
-  Volt_AverageBuffer[0]=value;    
-  return (sum+=value)/10;
-}
-
-//returns the average of Current for the 10 last values  
-uint32_t Get_Current_Average(uint16_t value)  {
-  uint8_t i;
-  uint32_t sum=0;
-
-  for(i=9;i>0;i--)  {
-    Current_AverageBuffer[i]=Current_AverageBuffer[i-1];
-    sum+=Current_AverageBuffer[i];
-  }
-  Current_AverageBuffer[0]=value;    
-  return (sum+=value)/10;
 }
 
 void storeAccX(int32_t value)

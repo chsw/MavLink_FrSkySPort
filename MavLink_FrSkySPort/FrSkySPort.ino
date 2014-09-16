@@ -130,6 +130,9 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   case SENSOR_ID_FAS:
     {
       printDebugPackageSend("FAS", nextFAS+1, 2);
+      // Use average of atleast 2 samples
+      if(currentCount < 2)
+        return;
       if(nextFAS == 0)
       {
         sendValueFASVoltage = readAndResetAverageVoltage();
@@ -137,6 +140,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       }
       if(sendValueFASVoltage < 1)
         break;
+      
       switch(nextFAS)
       {
       case 0:
