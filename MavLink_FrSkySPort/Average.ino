@@ -346,6 +346,10 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "geo-fence OK")                                          textId = 84;
   else if(text == "geo-fence triggered")                                   textId = 85;
   
+  // Libraries GCS_Common.cpp
+  else if(text == "flight plan update rejected")                           textId = 86;
+  else if(text == "flight plan received")                                  textId = 87;
+  
   // System version (received when connecting Mission planner)
   else if(text.startsWith("ArduCopter V"))                                 textId = 0;
   else if(text.startsWith("ArduPlane V"))                                  textId = 0;
