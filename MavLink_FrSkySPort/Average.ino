@@ -1,7 +1,3 @@
-
-uint16_t Volt_AverageBuffer[10]; 
-uint16_t Current_AverageBuffer[10]; 
-
 // Used to calculate an average vibration level using accelerometers
 #define accBufferSize 5
 int32_t accXBuffer[accBufferSize];
