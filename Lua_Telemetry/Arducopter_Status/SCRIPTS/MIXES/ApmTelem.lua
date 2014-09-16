@@ -69,6 +69,72 @@ local function decodeApmStatusText(textnr)
 	elseif textnr == 32 then return "Low Battery!"
 	elseif textnr == 33 then return "Lost GPS!"
 	elseif textnr == 34 then return "Trim saved"
+
+	elseif textnr ==  35 then return "compass disabled\n"
+	elseif textnr ==  36 then return "check compass"
+	elseif textnr ==  37 then return "RC not calibrated"
+	elseif textnr ==  38 then return "thr not zero"
+	elseif textnr ==  39 then return "Not landed"
+	elseif textnr ==  40 then return "STARTING CALIBRATION"
+	elseif textnr ==  41 then return "CURRENT"
+	elseif textnr ==  42 then return "THROTTLE"
+	elseif textnr ==  43 then return "Calibration Successful!"
+	elseif textnr ==  44 then return "Failed!"
+  
+	elseif textnr ==  45 then return "bad rally point message ID"
+	elseif textnr ==  46 then return "bad rally point message count"
+	elseif textnr ==  47 then return "error setting rally point"
+	elseif textnr ==  48 then return "bad rally point index"
+	elseif textnr ==  49 then return "failed to set rally point"
+  
+	elseif textnr ==  50 then return "Erasing logs"
+	elseif textnr ==  51 then return "Log erase complete"
+  
+	elseif textnr ==  52 then return "Motor Test: RC not calibrated"
+	elseif textnr ==  53 then return "Motor Test: vehicle not landed"
+	elseif textnr ==  54 then return "Motor Test: Safety Switch"
+  
+	elseif textnr ==  55 then return "No dataflash inserted"
+	elseif textnr ==  56 then return "ERASING LOGS"
+	elseif textnr ==  57 then return "Waiting for first HIL_STATE message"
+	elseif textnr ==  61 then return "Ready to FLY."
+	elseif textnr ==  62 then return "NO airspeed"
+  
+	elseif textnr ==  59 then return "command received: "
+	elseif textnr ==  60 then return "new HOME received"
+
+	elseif textnr ==  63 then return "Disable fence failed (autodisable)"
+	elseif textnr ==  64 then return "Fence disabled (autodisable)"
+  
+	elseif textnr ==  65 then return "Demo Servos!"
+  
+	elseif textnr ==  66 then return "Resetting prev_WP"
+	elseif textnr ==  67 then return "init home"
+	elseif textnr ==  68 then return "Fence enabled. (autoenabled)"
+	elseif textnr ==  69 then return "verify_nav: LOITER time complete"
+	elseif textnr ==  70 then return "verify_nav: LOITER orbits complete"
+	elseif textnr ==  71 then return "Reached home"
+  
+	elseif textnr ==  72 then return "Failsafe - Short event on, "
+	elseif textnr ==  73 then return "Failsafe - Long event on, "
+	elseif textnr ==  74 then return "No GCS heartbeat."
+	elseif textnr ==  75 then return "Failsafe - Short event off"
+
+	elseif textnr ==  76 then return "command received: "
+	elseif textnr ==  77 then return "fencing must be disabled"
+	elseif textnr ==  78 then return "bad fence point"
+  
+	elseif textnr ==  79 then return "verify_nav: Invalid or no current Nav cmd"
+	elseif textnr ==  80 then return "verify_conditon: Invalid or no current Condition cmd"
+	elseif textnr ==  81 then return "Enable fence failed (cannot autoenable"
+ 
+	elseif textnr ==  82 then return "geo-fence loaded"
+	elseif textnr ==  83 then return "geo-fence setup error"
+	elseif textnr ==  84 then return "geo-fence OK"
+	elseif textnr ==  85 then return "geo-fence triggered"
+  
+	elseif textnr ==  86 then return "flight plan update rejected"
+	elseif textnr ==  87 then return "flight plan received"
 	end
 	return ""
 end
