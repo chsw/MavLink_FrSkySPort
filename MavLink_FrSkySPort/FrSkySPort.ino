@@ -206,7 +206,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #ifdef SENSOR_ID_RPM
   case SENSOR_ID_RPM:
     printDebugPackageSend("RPM", 1, 1);
-    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2000+ap_battery_remaining);   //  * 2 if number of blades on Taranis is set to 2 + First 4 digits reserved for battery remaining in %
+    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 200+ap_battery_remaining);   //  * 2 if number of blades on Taranis is set to 2 + First 4 digits reserved for battery remaining in %
     break;
     // Since I don't know the app-id for these values, I just use these two "random"
   #endif
