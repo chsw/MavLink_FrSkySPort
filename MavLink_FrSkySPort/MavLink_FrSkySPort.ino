@@ -13,35 +13,43 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
  APM Telemetry DF13-5  Pin 2 --> RX2
  APM Telemetry DF13-5  Pin 3 --> TX2
  APM Telemetry DF13-5  Pin 5 --> GND
+
+ Note that when used with other telemetry device (3DR Radio 433 or 3DR Bluetooth tested) in parallel on the same port the Teensy should only Receive, so please remove it's TX output (RX input on PixHawk or APM)
  
- Analog input  --> A0 (pin14) on Teensy 3.1 ( max 3.3 V )
+ Analog input  --> A0 (pin14) on Teensy 3.1 ( max 3.3 V ) - Not used 
  
  
  This is the data we send to FrSky, you can change this to have your own
  set of data
- ******************************************************
- Data transmitted to FrSky Taranis:
- Cell           ( Voltage of Cell=Cells/4. [V] This is my LiPo pack 4S ) 
- Cells         ( Voltage from LiPo [V] )
- A2             ( hdop * 25 ) (8bit resoultion)
- Alt             ( Altitude from baro.  [m] )
- GAlt          ( Altitude from GPS   [m])
- HDG         ( Compass heading  [deg])
- Rpm         ( Throttle when ARMED [%] )
- AccX         ( AccX m/s ? )
- AccY         ( AccY m/s ? )
- AccZ         ( AccZ m/s ? )
- VSpd        ( Vertical speed [m/s] )
- Speed      ( Ground speed from GPS,  [km/h] )
- T1            ( GPS status = ap_sat_visible*10) + ap_fixtype )
- T2            ( ARMED=1, DISARMED=0 )
- Vfas          ( same as Cells )
- Longitud    
- Latitud
- Dist          ( Will be calculated by FrSky Taranis as the distance from first received lat/long = Home Position
  
- ******************************************************
- 
+******************************************************
+Data transmitted to FrSky Taranis:
+
+Cell            ( Voltage of Cell=Cells/(Number of cells). [V]) 
+Cells           ( Voltage from LiPo [V] )
+A2              ( HDOP value * 25 - 8 bit resolution)
+A3              ( Roll angle from -Pi to +Pi radians, converted to a value between 0 and 1024)
+A4              ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to a value between 0 and 1024)
+Alt             ( Altitude from baro.  [m] )
+GAlt            ( Altitude from GPS   [m])
+HDG             ( Compass heading  [deg]) v
+Rpm             ( Throttle when ARMED [%] *100 + % battery remaining as reported by Mavlink)
+VSpd            ( Vertical speed [m/s] )
+Speed           ( Ground speed from GPS,  [km/h] )
+T1              ( GPS status = ap_sat_visible*10) + ap_fixtype )
+T2              ( Armed Status and Mavlink Messages :- 16 bit value: bit 1: armed - bit 2-5: severity +1 (0 means no message - bit 6-15: number representing a specific text)
+Vfas            ( same as Cells )
+Longitud        ( Longitud )
+Latitud         ( Latitud )
+Dist            ( Will be calculated by FrSky Taranis as the distance from first received lat/long = Home Position )
+Fuel            ( Current Flight Mode reported by Mavlink )
+
+AccX            ( X Axis average vibration m/s?)
+AccY            ( Y Axis average vibration m/s?)
+AccZ            ( Z Axis average vibration m/s?)
+
+******************************************************
+
  */
 
 #include <GCS_MAVLink.h>
@@ -58,6 +66,7 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 //#define DEBUG_BAT
 //#define DEBUG_MODE
 //#define DEBUG_STATUS
+//#define DEBUG_ATTITUDE
 
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 
@@ -69,37 +78,74 @@ APM2.5 Mavlink to FrSky X8R SPort interface using Teensy 3.1  http://www.pjrc.co
 uint8_t    ap_type = 0;
 uint8_t    ap_autopilot = 0;
 uint8_t    ap_base_mode = 0;
-uint32_t  ap_custom_mode = 0;
+int32_t    ap_custom_mode = -1;
 uint8_t    ap_system_status = 0;
 uint8_t    ap_mavlink_version = 0;
 
-uint8_t   ap_status_severity = 255 ;
-uint8_t   ap_status_send_count = 0;
-uint8_t   ap_status_encodedText = 0;
-mavlink_statustext_t statustext;
-
 // Message # 1  SYS_STATUS 
-uint16_t  ap_voltage_battery = 0;    // 1000 = 1V
-int16_t    ap_current_battery = 0;    //  10 = 1A
+uint16_t   ap_voltage_battery = 0;       // 1000 = 1V
+int16_t    ap_current_battery = 0;      //  10 = 1A
+int8_t    ap_battery_remaining = 0;   // Remaining battery energy: (0%: 0, 100%: 100), -1: autopilot estimate the remaining battery
+
 
 // Message #24  GPS_RAW_INT 
-uint8_t    ap_fixtype = 3;                  //   0= No GPS, 1 = No Fix, 2 = 2D Fix, 3 = 3D Fix
-uint8_t    ap_sat_visible = 0;           // numbers of visible satelites
+uint8_t    ap_fixtype = 3;                //   0= No GPS, 1 = No Fix, 2 = 2D Fix, 3 = 3D Fix
+uint8_t    ap_sat_visible = 0;            // number of visible satelites
+
 // FrSky Taranis uses the first recieved lat/long as homeposition. 
-int32_t    ap_latitude = 0;              // 585522540;
-int32_t    ap_longitude = 0;            // 162344467;
-int32_t    ap_gps_altitude = 0;        // 1000 = 1m
+int32_t    ap_latitude = 0;               // 585522540;
+int32_t    ap_longitude = 0;              // 162344467;
+int32_t    ap_gps_altitude = 0;           // 1000 = 1m
 int32_t    ap_gps_speed = 0;
-uint16_t    ap_gps_hdop = 255;
+uint16_t   ap_gps_hdop = 255;             // GPS HDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
+// uint16_t    ap_vdop=0;                 // GPS VDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
+// uint16_t    ap_cog = 0;                // Course over ground (NOT heading, but direction of movement) in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
+
 
 // Message #74 VFR_HUD 
-uint32_t  ap_groundspeed = 0;
-uint32_t  ap_heading = 0;
-uint16_t  ap_throttle = 0;
+uint32_t  ap_groundspeed = 0;       // Current ground speed in m/s
+uint32_t  ap_heading = 0;           // Current heading in degrees, in compass units (0..360, 0=north)
+uint16_t  ap_throttle = 0;          // Current throttle setting in integer percent, 0 to 100
+
+// uint32_t  ap_alt=0;             //Current altitude (MSL), in meters
+// int32_t   ap_airspeed = 0;      // Current airspeed in m/s
+
 
 // FrSky Taranis uses the first recieved value after 'PowerOn' or  'Telemetry Reset'  as zero altitude
 int32_t    ap_bar_altitude = 0;    // 100 = 1m
 int32_t    ap_climb_rate=0;        // 100= 1m/s
+
+// Messages needed to use current Angles and axis speeds
+// Message #30 ATTITUDE           //MAVLINK_MSG_ID_ATTITUDE
+
+uint32_t ap_roll_angle = 0;    //Roll angle (rad)
+uint32_t ap_pitch_angle = 0;   //Pitch angle (rad)
+uint32_t ap_yaw_angle = 0;     //Yaw angle (rad)
+uint32_t ap_roll_speed = 0;    //Roll angular speed (rad/s)
+uint32_t ap_pitch_speed = 0;   //Pitch angular speed (rad/s)
+uint32_t ap_yaw_speed = 0;     //Yaw angular speed (rad/s)
+
+
+// Message #253 MAVLINK_MSG_ID_STATUSTEXT
+uint16_t   ap_status_severity = 255;
+uint16_t   ap_status_send_count = 0;
+uint16_t   ap_status_text_id = 0;
+mavlink_statustext_t statustext;
+
+/*
+
+  MAV_SEVERITY_EMERGENCY=0, System is unusable. This is a "panic" condition.
+  MAV_SEVERITY_ALERT=1, Action should be taken immediately. Indicates error in non-critical systems.
+  MAV_SEVERITY_CRITICAL=2, Action must be taken immediately. Indicates failure in a primary system.
+  MAV_SEVERITY_ERROR=3, Indicates an error in secondary/redundant systems. | 
+  MAV_SEVERITY_WARNING=4, Indicates about a possible future error if this is not resolved within a given timeframe. Example would be a low battery warning.
+  MAV_SEVERITY_NOTICE=5, An unusual event has occured, though not an error condition. This should be investigated for the root cause.
+  MAV_SEVERITY_INFO=6, Normal operational messages. Useful for logging. No action is required for these messages.
+  MAV_SEVERITY_DEBUG=7, Useful non-operational messages that can assist in debugging. These should not occur during normal operation.
+  MAV_SEVERITY_ENUM_END=8,
+
+*/
+
 
 // ******************************************
 // These are special for FrSky
@@ -210,7 +256,7 @@ void _MavLink_receive() {
           }
         }
         break;
-      case MAVLINK_MSG_ID_STATUSTEXT:
+      case MAVLINK_MSG_ID_STATUSTEXT:     //253
         mavlink_msg_statustext_decode(&msg,&statustext);
         ap_status_severity = statustext.severity;
         ap_status_send_count = 5;
@@ -227,11 +273,12 @@ void _MavLink_receive() {
         break;
 break; 
       case MAVLINK_MSG_ID_SYS_STATUS :   // 1
-        ap_voltage_battery = Get_Volt_Average(mavlink_msg_sys_status_get_voltage_battery(&msg));  // 1 = 1mV
-        ap_current_battery = Get_Current_Average(mavlink_msg_sys_status_get_current_battery(&msg));     // 1=10mA
-
+        ap_voltage_battery = mavlink_msg_sys_status_get_voltage_battery(&msg);  // 1 = 1mV
+        ap_current_battery = mavlink_msg_sys_status_get_current_battery(&msg);     // 1=10mA
+        ap_battery_remaining = mavlink_msg_sys_status_get_battery_remaining(&msg); //battery capacity reported in %
         storeVoltageReading(ap_voltage_battery);
         storeCurrentReading(ap_current_battery);
+
 #ifdef DEBUG_BAT
         debugSerial.print(millis());
         debugSerial.print("\tMAVLINK_MSG_ID_SYS_STATUS: voltage_battery: ");
@@ -250,18 +297,19 @@ break;
         if(temp_cell_count > ap_cell_count)
           ap_cell_count = temp_cell_count;
         break;
+
       case MAVLINK_MSG_ID_GPS_RAW_INT:   // 24
         ap_fixtype = mavlink_msg_gps_raw_int_get_fix_type(&msg);                               // 0 = No GPS, 1 =No Fix, 2 = 2D Fix, 3 = 3D Fix
         ap_sat_visible =  mavlink_msg_gps_raw_int_get_satellites_visible(&msg);          // numbers of visible satelites
         gps_status = (ap_sat_visible*10) + ap_fixtype; 
         ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(&msg)/4;
         // Max 8 bit
-        if(ap_gps_hdop > 255)
+        if(ap_gps_hdop == 0 || ap_gps_hdop > 255)
           ap_gps_hdop = 255;
         if(ap_fixtype == 3)  {
           ap_latitude = mavlink_msg_gps_raw_int_get_lat(&msg);
           ap_longitude = mavlink_msg_gps_raw_int_get_lon(&msg);
-          ap_gps_altitude = mavlink_msg_gps_raw_int_get_alt(&msg);    // 1m =1000
+          ap_gps_altitude = mavlink_msg_gps_raw_int_get_alt(&msg);      // 1m =1000
           ap_gps_speed = mavlink_msg_gps_raw_int_get_vel(&msg);         // 100 = 1m/s
         }
         else
@@ -285,6 +333,7 @@ break;
         debugSerial.println();                                     
 #endif
         break;
+
       case MAVLINK_MSG_ID_RAW_IMU:   // 27
         storeAccX(mavlink_msg_raw_imu_get_xacc(&msg) / 10);
         storeAccY(mavlink_msg_raw_imu_get_yacc(&msg) / 10);
@@ -300,13 +349,31 @@ break;
         debugSerial.print(mavlink_msg_raw_imu_get_zacc(&msg));
         debugSerial.println();
 #endif
-        break;      
+        break;
+
+      
+      case MAVLINK_MSG_ID_ATTITUDE:     //30
+        ap_roll_angle = (mavlink_msg_attitude_get_roll(&msg)+3.1416)*162.9747;  //value comes in rads, add pi and scale to 0 to 1024
+        ap_pitch_angle = (mavlink_msg_attitude_get_pitch(&msg)+1.5708)*325.9493; //value comes in rads, add pi/2 and scale to 0 to 1024
+        ap_yaw_angle = (mavlink_msg_attitude_get_yaw(&msg)+3.1416)*162.9747; //value comes in rads, add pi and scale to 0 to 1024
+      break;     
+      
+#ifdef DEBUG_ATTITUDE
+        debugSerial.print("MAVLINK Roll Angle: ");
+        debugSerial.print(mavlink_msg_attitude_get_roll(&msg));
+        debugSerial.print("\tMAVLINK Pitch Angle: ");
+        debugSerial.print(mavlink_msg_attitude_get_pitch(&msg));
+        debugSerial.print("\tMAVLINK Yaw Angle: ");
+        debugSerial.print(mavlink_msg_attitude_get_yaw(&msg));
+#endif
+        
+
       case MAVLINK_MSG_ID_VFR_HUD:   //  74
         ap_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);      // 100 = 1m/s
-        ap_heading = mavlink_msg_vfr_hud_get_heading(&msg);     // 100 = 100 deg
-        ap_throttle = mavlink_msg_vfr_hud_get_throttle(&msg);        //  100 = 100%
-        ap_bar_altitude = mavlink_msg_vfr_hud_get_alt(&msg) * 100;        //  m
-        ap_climb_rate=mavlink_msg_vfr_hud_get_climb(&msg) * 100;        //  m/s
+        ap_heading = mavlink_msg_vfr_hud_get_heading(&msg);              // 100 = 100 deg
+        ap_throttle = mavlink_msg_vfr_hud_get_throttle(&msg);            //  100 = 100%
+        ap_bar_altitude = mavlink_msg_vfr_hud_get_alt(&msg) * 100;       //  m
+        ap_climb_rate=mavlink_msg_vfr_hud_get_climb(&msg) * 100;         //  m/s
 #ifdef DEBUG_VFR_HUD
         debugSerial.print(millis());
         debugSerial.print("\tMAVLINK_MSG_ID_VFR_HUD: groundspeed: ");

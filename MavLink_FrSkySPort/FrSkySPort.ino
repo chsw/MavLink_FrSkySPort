@@ -59,6 +59,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   uint8_t offset;
   switch(sensorId)
   {
+  #ifdef SENSOR_ID_FLVSS
   case SENSOR_ID_FLVSS:
     {
       printDebugPackageSend("FLVSS", nextFLVSS+1, 3);
@@ -106,6 +107,8 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextFLVSS=0;
     }
     break;
+  #endif
+  #ifdef SENSOR_ID_VARIO
   case SENSOR_ID_VARIO:
     {
       printDebugPackageSend("VARIO", nextVARIO+1, 2);
@@ -122,9 +125,14 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextVARIO = 0;
     }
     break;
+  #endif
+  #ifdef SENSOR_ID_FAS
   case SENSOR_ID_FAS:
     {
       printDebugPackageSend("FAS", nextFAS+1, 2);
+      // Use average of atleast 2 samples
+      if(currentCount < 2)
+        return;
       if(nextFAS == 0)
       {
         sendValueFASVoltage = readAndResetAverageVoltage();
@@ -132,6 +140,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       }
       if(sendValueFASVoltage < 1)
         break;
+      
       switch(nextFAS)
       {
       case 0:
@@ -145,6 +154,8 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextFAS = 0;
     }
     break;
+  #endif
+  #ifdef SENSOR_ID_GPS
   case SENSOR_ID_GPS:
     {
       printDebugPackageSend("GPS", nextGPS+1, 5);
@@ -174,12 +185,16 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         }
         break;
       case 3:
+      // Note: This is sending GPS Speed now
         if(ap_fixtype==3) {
           //            FrSkySPort_SendPackage(FR_ID_SPEED,ap_groundspeed *20 );  // from GPS converted to km/h
           FrSkySPort_SendPackage(FR_ID_SPEED,ap_gps_speed *20 );  // from GPS converted to km/h
         }
         break;
       case 4:
+         // Note: This is sending Course Over Ground from GPS as Heading
+         // before we were sending this: FrSkySPort_SendPackage(FR_ID_HEADING,ap_cog * 100); 
+
         FrSkySPort_SendPackage(FR_ID_GPS_COURSE, ap_heading * 100);   // 10000 = 100 deg
         break;
       }
@@ -187,16 +202,19 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         nextGPS = 0;
     }
     break;    
+  #endif
+  #ifdef SENSOR_ID_RPM
   case SENSOR_ID_RPM:
     printDebugPackageSend("RPM", 1, 1);
-    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2);   //  * 2 if number of blades on Taranis is set to 2
+    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2000+ap_battery_remaining);   //  * 2 if number of blades on Taranis is set to 2 + First 4 digits reserved for battery remaining in %
     break;
     // Since I don't know the app-id for these values, I just use these two "random"
+  #endif
   case 0x45:
   case 0xC6:
     switch(nextDefault)
     {
-    case 0:        // Sends the analog value from input A0 on Teensy 3.1
+    case 0:        // Note: We are using A2 - previously reported analog voltage when connected to Teensy - as Hdop
       FrSkySPort_SendPackage(FR_ID_ADC2, ap_gps_hdop);                  
       break;       
     case 1:
@@ -212,25 +230,43 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
       break; 
     case 5:
+      FrSkySPort_SendPackage(FR_ID_A3_FIRST,ap_roll_angle);
+      break;
+    case 6:
+      FrSkySPort_SendPackage(FR_ID_A4_FIRST,ap_pitch_angle);
+      break;
+    case 7:
       {
+        // 16 bit value: 
+        // bit 1: armed
+        // bit 2-5: severity +1 (0 means no message)
+        // bit 6-15: number representing a specific text
         uint32_t ap_status_value = ap_base_mode&0x01;
-        if(ap_status_send_count > 0)
+        // If we have a message-text to report (we send it multiple times to make sure it arrives even on telemetry glitches)
+        if(ap_status_send_count > 0 && ap_status_text_id > 0)
         {
-          ap_status_value |= (((ap_status_severity+1)&0x0F)<<1) |((ap_status_encodedText&0x3FF)<<5);
+          // Add bits 2-15
+          ap_status_value |= (((ap_status_severity+1)&0x0F)<<1) |((ap_status_text_id&0x3FF)<<5);
           ap_status_send_count--;
-        }
-        if(ap_status_send_count == 0)
-        {
-           ap_status_severity = 255; 
+          if(ap_status_send_count == 0)
+          {
+             // Reset severity and text-message after we have sent the message
+             ap_status_severity = 0; 
+             ap_status_text_id = 0;
+          }          
         }
         FrSkySPort_SendPackage(FR_ID_T2, ap_status_value); 
       }
       break;
-    case 6:
-      FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
+    case 8:
+      // Don't send until we have received a value through mavlink
+      if(ap_custom_mode >= 0)
+      {
+        FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
+      }
       break;      
     }
-    if(++nextDefault > 6)
+    if(++nextDefault > 8)
       nextDefault = 0;
   default: 
 #ifdef DEBUG_FRSKY_SENSOR_REQUEST
@@ -263,16 +299,30 @@ void printDebugPackageSend(char* pkg_name, uint8_t pkg_nr, uint8_t pkg_max)
 // ***********************************************************************
 void FrSkySPort_SendByte(uint8_t byte) {
 
-  _FrSkySPort_Serial.write(byte);
+  if(byte == 0x7E)
+  {
+    _FrSkySPort_Serial.write(0x7D);
+    _FrSkySPort_Serial.write(0x5E);
+  }
+  else if(byte == 0x7D)
+  {
+    _FrSkySPort_Serial.write(0x7D);
+    _FrSkySPort_Serial.write(0x5D);
+  }
+  else
+  {
+    _FrSkySPort_Serial.write(byte);
+  }
+  FrSkySPort_UpdateCRC(byte);
+}
 
-  // CRC update
+void FrSkySPort_UpdateCRC(uint8_t byte)
+{
+   // CRC update
   crc += byte;         //0-1FF
   crc += crc >> 8;   //0-100
   crc &= 0x00ff;
-  crc += crc >> 8;   //0-0FF
-  crc &= 0x00ff;
 }
-
 
 // ***********************************************************************
 void FrSkySPort_SendCrc() {
