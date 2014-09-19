@@ -28,6 +28,7 @@ Data transmitted to FrSky Taranis:
 Cell            ( Voltage of Cell=Cells/(Number of cells). [V]) 
 Cells           ( Voltage from LiPo [V] )
 A2              ( HDOP value * 25 - 8 bit resolution)
+<<<<<<< HEAD
 A3              ( Roll angle from -Pi to +Pi radians, converted to a value between 0 and 1024)
 A4              ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to a value between 0 and 1024)
 Alt             ( Altitude from baro.  [m] )
@@ -38,6 +39,16 @@ VSpd            ( Vertical speed [m/s] )
 Speed           ( Ground speed from GPS,  [km/h] )
 T1              ( GPS status = ap_sat_visible*10) + ap_fixtype )
 T2              ( Armed Status and Mavlink Messages :- 16 bit value: bit 1: armed - bit 2-5: severity +1 (0 means no message - bit 6-15: number representing a specific text)
+=======
+Alt             ( Altitude from baro.  [m] )
+GAlt            ( Altitude from GPS   [m])
+HDG             ( Compass heading  [deg]) v
+Rpm             ( Throttle when ARMED [%] ) as reported by Mavlink
+VSpd            ( Vertical speed [m/s] )
+Speed           ( Ground speed from GPS,  [km/h] )
+T1              ( GPS status = ap_sat_visible*10) + ap_fixtype )
+T2              ( Armed=1, Disarmed=0 )
+>>>>>>> FETCH_HEAD
 Vfas            ( same as Cells )
 Longitud        ( Longitud )
 Latitud         ( Latitud )
@@ -78,14 +89,24 @@ AccZ            ( Z Axis average vibration m/s?)
 uint8_t    ap_type = 0;
 uint8_t    ap_autopilot = 0;
 uint8_t    ap_base_mode = 0;
+<<<<<<< HEAD
 int32_t    ap_custom_mode = -1;
+=======
+uint32_t   ap_custom_mode = 0;
+>>>>>>> FETCH_HEAD
 uint8_t    ap_system_status = 0;
 uint8_t    ap_mavlink_version = 0;
 
 // Message # 1  SYS_STATUS 
+<<<<<<< HEAD
 uint16_t   ap_voltage_battery = 0;       // 1000 = 1V
 int16_t    ap_current_battery = 0;      //  10 = 1A
 int8_t    ap_battery_remaining = 0;   // Remaining battery energy: (0%: 0, 100%: 100), -1: autopilot estimate the remaining battery
+=======
+uint16_t  ap_voltage_battery = 0;       // 1000 = 1V
+int16_t    ap_current_battery = 0;      //  10 = 1A
+//int8_t    ap_battery_remaining = 0;   // Remaining battery energy: (0%: 0, 100%: 100), -1: autopilot estimate the remaining battery
+>>>>>>> FETCH_HEAD
 
 
 // Message #24  GPS_RAW_INT 
@@ -127,9 +148,16 @@ uint32_t ap_yaw_speed = 0;     //Yaw angular speed (rad/s)
 
 
 // Message #253 MAVLINK_MSG_ID_STATUSTEXT
+<<<<<<< HEAD
 uint16_t   ap_status_severity = 255;
 uint16_t   ap_status_send_count = 0;
 uint16_t   ap_status_text_id = 0;
+=======
+uint8_t   ap_severity = 0;
+uint8_t   ap_status_severity = 255;
+uint8_t   ap_status_send_count = 0;
+uint8_t   ap_status_encodedText = 0;
+>>>>>>> FETCH_HEAD
 mavlink_statustext_t statustext;
 
 /*
@@ -137,7 +165,11 @@ mavlink_statustext_t statustext;
   MAV_SEVERITY_EMERGENCY=0, System is unusable. This is a "panic" condition.
   MAV_SEVERITY_ALERT=1, Action should be taken immediately. Indicates error in non-critical systems.
   MAV_SEVERITY_CRITICAL=2, Action must be taken immediately. Indicates failure in a primary system.
+<<<<<<< HEAD
   MAV_SEVERITY_ERROR=3, Indicates an error in secondary/redundant systems. | 
+=======
+  MAV_SEVERITY_ERROR=3, Indicates an error in secondary/redundant systems. | */
+>>>>>>> FETCH_HEAD
   MAV_SEVERITY_WARNING=4, Indicates about a possible future error if this is not resolved within a given timeframe. Example would be a low battery warning.
   MAV_SEVERITY_NOTICE=5, An unusual event has occured, though not an error condition. This should be investigated for the root cause.
   MAV_SEVERITY_INFO=6, Normal operational messages. Useful for logging. No action is required for these messages.
@@ -261,6 +293,7 @@ void _MavLink_receive() {
         ap_status_severity = statustext.severity;
         ap_status_send_count = 5;
         parseStatusText(statustext.severity, statustext.text);
+        ap_severity = (statustext.severity);
         
 #ifdef DEBUG_STATUS
         debugSerial.print(millis());
@@ -351,6 +384,7 @@ break;
 #endif
         break;
 
+<<<<<<< HEAD
       
       case MAVLINK_MSG_ID_ATTITUDE:     //30
         ap_roll_angle = (mavlink_msg_attitude_get_roll(&msg)+3.1416)*162.9747;  //value comes in rads, add pi and scale to 0 to 1024
@@ -367,6 +401,15 @@ break;
         debugSerial.print(mavlink_msg_attitude_get_yaw(&msg));
 #endif
         
+=======
+      /*
+      case MAVLINK_MSG_ID_ATTITUDE:     //30
+        ap_roll_angle = mavlink_msg_attitude_get_roll(&msg);  //value comes in rads
+        ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg);
+        ap_yaw_angle = mavlink_msg_attitude_get_yaw(&msg);
+      break;     
+      */ 
+>>>>>>> FETCH_HEAD
 
       case MAVLINK_MSG_ID_VFR_HUD:   //  74
         ap_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);      // 100 = 1m/s
