@@ -258,7 +258,11 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         FrSkySPort_SendPackage(FR_ID_T2, ap_status_value); 
       }
       break;
+<<<<<<< HEAD
     case 8:
+=======
+    case 6:
+>>>>>>> 7d11ad6487b3a0781eb9ffb6aceb12bfbf84689b
       // Don't send until we have received a value through mavlink
       if(ap_custom_mode >= 0)
       {

@@ -1,8 +1,6 @@
 local soundfile_base = "/SOUNDS/en/fm_"
 
-local apm_active_warning = 0
-local apm_active_warning_textnr = 0
-local apm_active_warning_timeout = 0
+local apm_status_message = {severity = 0, textnr = 0, timestamp=0}
 
 local outputs = {"armd"}
 
@@ -53,28 +51,79 @@ local function decodeApmStatusText(textnr)
 	elseif textnr == 17 then return "PreArm: Need 3D Fix"
 	elseif textnr == 18 then return "PreArm: Bad Velocity"
 	elseif textnr == 19 then return "PreArm: High GPS HDOP"
+	
 	elseif textnr == 20 then return "Arm: Alt disparity"
 	elseif textnr == 21 then return "Arm: Thr below FS"
 	elseif textnr == 22 then return "Arm: Leaning"
 	elseif textnr == 23 then return "Arm: Safety Switch"
+	
+	elseif textnr == 24 then return "AutoTune: Started"
+	elseif textnr == 25 then return "AutoTune: Stopped"
+	elseif textnr == 26 then return "AutoTune: Success"
+	elseif textnr == 27 then return "AutoTune: Failed"
+
+	elseif textnr == 28 then return "Crash: Disarming"
+	elseif textnr == 29 then return "Parachute: Released!"
+	elseif textnr == 30 then return "Parachute: Too Low"
+	elseif textnr == 31 then return "EKF variance"
+	elseif textnr == 32 then return "Low Battery!"
+	elseif textnr == 33 then return "Lost GPS!"
+	elseif textnr == 34 then return "Trim saved"
 	end
-	return ""..textnr
+	return ""
+end
+
+function getApmActiveStatus()
+	if apm_status_message.timestamp == 0
+	then 
+		return nil
+	end
+	return {timestamp = apm_status_message.timestamp, message = getApmActiveWarnings(true)}
 end
 
 function getApmActiveStatusSeverity()
-	if apm_active_warning_timeout < getTime()
-	then
-		apm_active_warning = 0
+	if isApmActiveStatus() == false
+	then 
+		return ""
 	end
-	return decodeApmWarning(apm_active_warning)
+	return decodeApmWarning(apm_status_message.severity)
 end
 
 function getApmActiveStatusText()
-	return decodeApmStatusText(apm_active_warning_textnr)
+	if isApmActiveStatus() == false
+	then 
+		return ""
+	end
+	return decodeApmStatusText(apm_status_message.textnr)
+end
+
+function getApmActiveWarnings(includeUnknown)
+	local severity = getApmActiveStatusSeverity()
+	local text = getApmActiveStatusText()
+	
+	if includeUnknown == false or text ~= "" 
+	then 
+		return text
+	end
+	
+	if severity == "" 
+	then 
+		return ""
+	end
+	
+	return severity..apm_status_message.textnr;
+end
+
+function isApmActiveStatus()
+	if apm_status_message.timestamp > 0
+	then
+		return true
+	end
+	return false
 end
 
 function getApmFlightmodeNumber()
-	return getValue("fuel")
+	return getValue(208) -- Fuel
 end
 
 function getApmFlightmodeText()
@@ -98,21 +147,21 @@ function getApmFlightmodeText()
 end
 
 function getApmGpsHdop()
-	return getValue("a2")*10
+	return getValue(203)/10 -- A2
 end 
 
 function getApmGpsSats()
-  local telem_t1 = getValue("temp1") -- Temp1
+  local telem_t1 = getValue(209) -- Temp1
   return (telem_t1 - (telem_t1%10))/10
 end
 
 function getApmGpsLock()
-  local telem_t1 = getValue("temp1") -- Temp1
+  local telem_t1 = getValue(209) -- Temp1
   return  telem_t1%10
 end
 
 function getApmArmed()
-	return getValue("temp2")%256 > 0
+	return getValue(210)%2 > 0 -- Temp2
 end
 
 
@@ -137,7 +186,7 @@ end
 
 -- The heading to pilot home position relative to the current heading.
 function getApmHeadingHomeRelative()
-	local tmp = getApmHeadingHome() - getValue("heading")
+	local tmp = getApmHeadingHome() - getValue(223) -- Heading
 	return (tmp +360)%360
 end
 
@@ -148,7 +197,7 @@ end
 
 local function run_func()
 	-- Handle warning messages from mavlink
-	local t2 = getValue("temp2")
+	local t2 = getValue(210) -- Temp2
 	local armed = t2%0x02;
 	t2 = (t2-armed)/0x02;
 	local status_severity = t2%0x10;
@@ -156,12 +205,18 @@ local function run_func()
 	local status_textnr = t2%0x400;
 	if(status_severity > 0)
 	then
-		if apm_active_warning ~= status_severity and status_severity ~= 0
+		if status_severity ~= apm_status_message.severity or status_textnr ~= apm_status_message.textnr
 		then
-			apm_active_warning_timeout = getWarningTimeout()
+			apm_status_message.severity = status_severity
+			apm_status_message.textnr = status_textnr
+			apm_status_message.timestamp = getTime()
 		end
-		apm_active_warning = status_severity
-		apm_active_warning_textnr = status_textnr
+	end
+	if apm_status_message.timestamp > 0 and (apm_status_message.timestamp + 2*100) < getTime()
+	then
+		apm_status_message.severity = 0
+		apm_status_message.textnr = 0
+		apm_status_message.timestamp = 0
 	end
 
 	-- Calculate return value (armed)

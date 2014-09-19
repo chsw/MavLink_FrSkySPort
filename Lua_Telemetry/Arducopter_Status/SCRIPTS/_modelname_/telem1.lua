@@ -12,19 +12,20 @@ end
 
 local function run(event)
 
-  if getApmActiveStatusSeverity() ~= ""
+  -- Fetch current status
+  local status = getApmActiveStatus()
+  -- If we have a status - display the message
+  if status ~= nil
   then
-      lcd.drawText(1, 55, getApmActiveStatusSeverity()..": "..getApmActiveStatusText(), 0)
+	lcd.drawText(1, 55, status.message, 0)
+  -- Ohterwise show the battery gauge
   else
 	  -- Battery gauge
 	  local telem_mah = getValue("consumption")
 	  lcd.drawGauge(1, 55, 90, 8, capacity_max - telem_mah, capacity_max)
 	  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
   end
-  
-    lcd.drawText(150, 55, getValue("distance").."m", 0)
-
-
+ 
 -- Model name && status
   lcd.drawText(2,1, model.getInfo().name, MIDSIZE)
   if getApmArmed()
@@ -33,17 +34,34 @@ local function run(event)
   else
 	lcd.drawText(lcd.getLastPos()+3, 1, "SAFE", MIDSIZE)
   end
+
+  -- Timer
+  local timer = model.getTimer(0)
+  local pos = 155 --lcd.getLastPos()+10
+  lcd.drawText(pos, 1, "Timer", SMLSIZE) 
+  lcd.drawTimer(pos,7, timer.value, MIDSIZE)  
+-- Current altitude  
+  lcd.drawText(145, 30, getValue("altitude") .. "m", MIDSIZE)
   
  -- gps status
+  local gpsHdop = getApmGpsHdop()
   if getApmGpsLock() >= 3.0
   then
-	lcd.drawText(lcd.getLastPos()+3, 1, "GPS: 3D sat "..getApmGpsSats(), 0)
+	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gps3d.bmp")
   else
-	lcd.drawText(lcd.getLastPos()+3, 1, "No lock("..getApmGpsSats().."sat)", BLINK)
+	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gpsno.bmp")
   end
-  lcd.drawText(120, 15, "Hdop: ", 0)
-  lcd.drawNumber(lcd.getLastPos()+3, 15, getApmGpsHdop(), 0+PREC2+LEFT )
---  lcd.drawText(120,15, getSounds(), 0)
+  if gpsHdop ==  0.0 then
+	lcd.drawText(190, 30, "---", BLINK)
+  elseif gpsHdop == 10.24 then
+	lcd.drawText(190, 30, "HIGH", BLINK)
+  elseif gpsHdop <= 2.0
+  then
+	lcd.drawText(190, 30, gpsHdop, 0)
+  else
+	lcd.drawText(190, 30,  gpsHdop, BLINK)
+  end
+
 -- Line 2
   lcd.drawText(1, 15, getApmFlightmodeText(), 0);
 -- Line 3
@@ -54,16 +72,20 @@ local function run(event)
   lcd.drawText(1, 45, "Peaks: "..getValue("vfas-min").."V ("..getValue("cell-min-min").."V) "..getValue("current-max").."A "..getValue("power-max").."W", 0)
 
 -- Right column:
--- Timer
-  local timer = model.getTimer(0)
-  lcd.drawTimer(170,10, timer.value, MIDSIZE)
--- Current altitude  
-  lcd.drawText(170,22, getValue("altitude") .. "m", MIDSIZE)
+
+
 -- Home position
   local relativeHeadingHome = getApmHeadingHomeRelative()
   local integHead, fracHead = math.modf(relativeHeadingHome/22.5+.5)
-  lcd.drawPixmap(190,42,"/BMP/arrow"..(integHead%16)..".bmp")
-  lcd.drawText(150, 45, "To Home", 0)
+  lcd.drawPixmap(190,42,"/SCRIPTS/BMP/arrow"..(integHead%16)..".bmp")
+  lcd.drawText(145, 45, "To Home", 0)
+  lcd.drawText(145, 55, getValue("distance").."m", 0)
+
+-- Inform if there are unread messages
+  if global_new_messages ~= nil and global_new_messages == true
+  then
+    lcd.drawText(145, 20, "New Msg", BLINK)
+  end
 end
 
 return { init=init, run=run, background=background}
