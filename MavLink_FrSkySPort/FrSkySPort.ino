@@ -206,7 +206,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #ifdef SENSOR_ID_RPM
   case SENSOR_ID_RPM:
     printDebugPackageSend("RPM", 1, 1);
-    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 2);   //  * 2 if number of blades on Taranis is set to 2
+    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 200+ap_battery_remaining*2);   //  * 2 if number of blades on Taranis is set to 2 + First 4 digits reserved for battery remaining in %
     break;
     // Since I don't know the app-id for these values, I just use these two "random"
   #endif
@@ -230,6 +230,12 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
       break; 
     case 5:
+      FrSkySPort_SendPackage(FR_ID_A3_FIRST,ap_roll_angle);
+      break;
+    case 6:
+      FrSkySPort_SendPackage(FR_ID_A4_FIRST,ap_pitch_angle);
+      break;
+    case 7:
       {
         // 16 bit value: 
         // bit 1: armed
@@ -252,7 +258,11 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         FrSkySPort_SendPackage(FR_ID_T2, ap_status_value); 
       }
       break;
+<<<<<<< HEAD
+    case 8:
+=======
     case 6:
+>>>>>>> 7d11ad6487b3a0781eb9ffb6aceb12bfbf84689b
       // Don't send until we have received a value through mavlink
       if(ap_custom_mode >= 0)
       {
@@ -260,7 +270,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       }
       break;      
     }
-    if(++nextDefault > 6)
+    if(++nextDefault > 8)
       nextDefault = 0;
   default: 
 #ifdef DEBUG_FRSKY_SENSOR_REQUEST
