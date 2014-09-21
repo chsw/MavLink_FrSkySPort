@@ -1,3 +1,5 @@
+ApmTelem_ACTIVE = false
+
 local soundfile_base = "/SOUNDS/en/fm_"
 
 local apm_status_message = {severity = 0, textnr = 0, timestamp=0}
@@ -5,6 +7,7 @@ local apm_status_message = {severity = 0, textnr = 0, timestamp=0}
 local outputs = {"armd"}
 
 local function init()
+	ApmTelem_ACTIVE = true
 	-- Prepare a2 for hdop
 	local a1t = model.getTelemetryChannel(1)
 	if a1t.unit ~= 3 or a1t.range ~=1024 or a1t.offset ~=0 

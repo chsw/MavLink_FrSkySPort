@@ -11,6 +11,13 @@ end
 
 
 local function run(event)
+  if ApmTelem_ACTIVE == nil or ApmTelem_ACTIVE == false
+  then
+	lcd.drawText(20, 20, "Please install mixerscript", 0)
+	lcd.drawText(20, 30, "ApmTelem.lua", 0)
+    lcd.drawText(20, 40, "on the \"Custom Scripts\" page!", 0)
+	return
+  end
 
   -- Fetch current status
   local status = getApmActiveStatus()
