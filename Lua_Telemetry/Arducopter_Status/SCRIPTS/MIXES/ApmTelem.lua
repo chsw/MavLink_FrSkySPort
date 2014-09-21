@@ -8,14 +8,36 @@ local outputs = {"armd"}
 
 local function init()
 	ApmTelem_ACTIVE = true
-	-- Prepare a2 for hdop
-	local a1t = model.getTelemetryChannel(1)
-	if a1t.unit ~= 3 or a1t.range ~=1024 or a1t.offset ~=0 
+	-- Prepare A2 for hdop
+	local A2 = model.getTelemetryChannel(1)
+	if A2 .unit ~= 3 or A2 .range ~=1024 or A2 .offset ~=0 
 	then
-		a1t.unit = 3
-		a1t.range = 1024
-		a1t.offset = 0
-		model.setTelemetryChannel(1, a1t)
+		A2.unit = 3
+		A2.range = 1024
+		A2.offset = 0
+		model.setTelemetryChannel(1, A2)
+	end
+	-- Prepare A3 and A4 for roll
+	local A3 = model.getTelemetryChannel(2)
+	if A3.unit ~= 3 or A3.range ~=362 or A3.offset ~=-180 
+	then
+		A3.unit = 3
+		A3.range = 362
+		A3.offset = -180
+		A3.alarm1 = -180
+		A3.alarm2 = -180
+		model.setTelemetryChannel(2, A3)
+	end
+	-- Prepare A3 and A4 for roll
+	local A4 = model.getTelemetryChannel(3)
+	if A4.unit ~= 3 or A4.range ~=362 or A4.offset ~=-180 
+	then
+		A4.unit = 3
+		A4.range = 362
+		A4.offset = -180
+		A4.alarm1 = -180
+		A4.alarm2 = -180
+		model.setTelemetryChannel(3, A4)
 	end
 end
 
