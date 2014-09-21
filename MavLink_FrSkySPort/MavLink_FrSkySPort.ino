@@ -117,8 +117,8 @@ int32_t    ap_climb_rate=0;        // 100= 1m/s
 // Messages needed to use current Angles and axis speeds
 // Message #30 ATTITUDE           //MAVLINK_MSG_ID_ATTITUDE
 
-uint32_t ap_roll_angle = 0;    //Roll angle (rad)
-uint32_t ap_pitch_angle = 0;   //Pitch angle (rad)
+int32_t ap_roll_angle = 0;    //Roll angle (deg -180/180)
+int32_t ap_pitch_angle = 0;   //Pitch angle (deg -180/180)
 uint32_t ap_yaw_angle = 0;     //Yaw angle (rad)
 uint32_t ap_roll_speed = 0;    //Roll angular speed (rad/s)
 uint32_t ap_pitch_speed = 0;   //Pitch angular speed (rad/s)
@@ -351,20 +351,35 @@ break;
         break;
 
       case MAVLINK_MSG_ID_ATTITUDE:     //30
-        ap_roll_angle = (mavlink_msg_attitude_get_roll(&msg)+3.1416)*162.9747;  //value comes in rads, add pi and scale to 0 to 1024
-        ap_pitch_angle = (mavlink_msg_attitude_get_pitch(&msg)+1.5708)*325.9493; //value comes in rads, add pi/2 and scale to 0 to 1024
+        ap_roll_angle = mavlink_msg_attitude_get_roll(&msg)*180/3.1416;  //value comes in rads, convert to deg
+        // Not upside down
+        if(abs(ap_roll_angle) <= 90)
+        {
+          ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg)*180/3.1416; //value comes in rads, convert to deg
+        }
+        // Upside down
+        else
+        {
+          ap_pitch_angle = 180-mavlink_msg_attitude_get_pitch(&msg)*180/3.1416; //value comes in rads, convert to deg
+        }
         ap_yaw_angle = (mavlink_msg_attitude_get_yaw(&msg)+3.1416)*162.9747; //value comes in rads, add pi and scale to 0 to 1024
-      break;     
       
 #ifdef DEBUG_ATTITUDE
         debugSerial.print("MAVLINK Roll Angle: ");
         debugSerial.print(mavlink_msg_attitude_get_roll(&msg));
+        debugSerial.print(" (");
+        debugSerial.print(ap_roll_angle);
+        debugSerial.print("deg)");
         debugSerial.print("\tMAVLINK Pitch Angle: ");
         debugSerial.print(mavlink_msg_attitude_get_pitch(&msg));
+        debugSerial.print(" (");
+        debugSerial.print(ap_pitch_angle);
+        debugSerial.print("deg)");
         debugSerial.print("\tMAVLINK Yaw Angle: ");
         debugSerial.print(mavlink_msg_attitude_get_yaw(&msg));
+        debugSerial.println();
 #endif
-        
+      break;
       case MAVLINK_MSG_ID_VFR_HUD:   //  74
         ap_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);      // 100 = 1m/s
         ap_heading = mavlink_msg_vfr_hud_get_heading(&msg);              // 100 = 100 deg

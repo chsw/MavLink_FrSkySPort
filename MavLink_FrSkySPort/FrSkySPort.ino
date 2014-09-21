@@ -17,6 +17,11 @@ uint8_t nextFAS = 0;
 uint8_t nextVARIO = 0;
 uint8_t nextGPS = 0;
 uint8_t nextDefault = 0;
+
+// Scale factor for roll/pitch:
+// We need to scale down 360 deg to fit when max value is 256, and 256 equals 362 deg
+float scalefactor = 360.0/((362.0/360.0)*256.0);
+
 // ***********************************************************************
 void FrSkySPort_Init(void)  {
   _FrSkySPort_Serial.begin(_FrSkySPort_BAUD);
@@ -230,10 +235,10 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       FrSkySPort_SendPackage(FR_ID_T1,gps_status); 
       break; 
     case 5:
-      FrSkySPort_SendPackage(FR_ID_A3_FIRST,ap_roll_angle);
+      FrSkySPort_SendPackage(FR_ID_A3_FIRST, handle_A2_A3_value((ap_roll_angle+180)/scalefactor));
       break;
     case 6:
-      FrSkySPort_SendPackage(FR_ID_A4_FIRST,ap_pitch_angle);
+      FrSkySPort_SendPackage(FR_ID_A4_FIRST, handle_A2_A3_value((ap_pitch_angle+180)/scalefactor));
       break;
     case 7:
       {
@@ -277,6 +282,11 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
 #endif
     ;
   }
+}
+
+uint32_t handle_A2_A3_value(uint32_t value)
+{
+  return (value *330-165)/0xFF;
 }
 
 // ***********************************************************************
