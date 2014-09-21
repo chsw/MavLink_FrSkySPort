@@ -144,7 +144,7 @@ function getApmActiveStatus()
 	then 
 		return nil
 	end
-	return {timestamp = apm_status_message.timestamp, message = getApmActiveWarnings(true)}
+	return {timestamp = apm_status_message.timestamp, message = getApmActiveWarnings(true), severity = apm_status_message.severity}
 end
 
 function getApmActiveStatusSeverity()

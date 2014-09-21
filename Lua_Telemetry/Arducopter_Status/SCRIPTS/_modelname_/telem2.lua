@@ -40,7 +40,7 @@ local function handleMessage()
 	do
 	  messages[i] = messages[i-1]
 	end
-	messages[1] = {text = message.message, timestamp = message.timestamp }
+	messages[1] = {text = message.message, timestamp = message.timestamp, severity = message.severity }
   end
 end
 
@@ -64,7 +64,8 @@ local function run(event)
   do
 	if messages[i] ~= nil
 	then
-		lcd.drawText(1, 1 + 8* (i-1) , formatTimestamp(messages[i].timestamp).."  "..messages[i].text, 0)
+		lcd.drawPixmap(1, 1+8* (i-1), "/SCRIPTS/BMP/severity" .. messages[i].severity .. ".bmp")
+		lcd.drawText(10, 1 + 8* (i-1) , formatTimestamp(messages[i].timestamp).."  "..messages[i].text, 0)
 		warnings_received = true
 	end
   end
