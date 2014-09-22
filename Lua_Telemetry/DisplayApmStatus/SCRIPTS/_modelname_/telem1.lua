@@ -1,6 +1,8 @@
 -- Set by user
 local capacity_max = 4000
 
+-- Don't change these
+local API_LEVEL_NEED = 2
 local function init()
 
 end
@@ -11,9 +13,15 @@ end
 
 
 local function run(event)
-  if ApmTelem_ACTIVE == nil or ApmTelem_ACTIVE == false
+  
+  if ApmTelem_API_VER == nil or ApmTelem_API_VER < API_LEVEL_NEED
   then
-	lcd.drawText(20, 20, "Please install mixerscript", 0)
+	if ApmTelem_API_VER == nil 
+	then
+		lcd.drawText(20, 20, "Please install mixerscript", 0)
+	else
+		lcd.drawText(20, 20, "Wrong version. Please update", 0)
+	end
 	lcd.drawText(20, 30, "ApmTelem.lua", 0)
     lcd.drawText(20, 40, "on the \"Custom Scripts\" page!", 0)
 	return
