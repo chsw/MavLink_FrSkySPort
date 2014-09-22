@@ -28,8 +28,8 @@ Data transmitted to FrSky Taranis:
 Cell            ( Voltage of Cell=Cells/(Number of cells). [V]) 
 Cells           ( Voltage from LiPo [V] )
 A2              ( HDOP value * 25 - 8 bit resolution)
-A3              ( Roll angle from -Pi to +Pi radians, converted to a value between 0 and 1024)
-A4              ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to a value between 0 and 1024)
+A3              ( Roll angle from -Pi to +Pi radians, converted to degrees - Check A3 settings on radio - Range 362 Offset -180)
+A4              ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to degrees - Check A4 settings on radio - Range 362 Offset -180)
 Alt             ( Altitude from baro.  [m] )
 GAlt            ( Altitude from GPS   [m])
 HDG             ( Compass heading  [deg]) v
@@ -71,7 +71,7 @@ AccZ            ( Z Axis average vibration m/s?)
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 
 //#define DEBUG_AVERAGE_VOLTAGE
-#define DEBUG_PARSE_STATUS_TEXT
+//#define DEBUG_PARSE_STATUS_TEXT
 
 // ******************************************
 // Message #0  HEARTHBEAT 
@@ -119,7 +119,7 @@ int32_t    ap_climb_rate=0;        // 100= 1m/s
 
 int32_t ap_roll_angle = 0;    //Roll angle (deg -180/180)
 int32_t ap_pitch_angle = 0;   //Pitch angle (deg -180/180)
-uint32_t ap_yaw_angle = 0;     //Yaw angle (rad)
+int32_t ap_yaw_angle = 0;     //Yaw angle (rad)
 uint32_t ap_roll_speed = 0;    //Roll angular speed (rad/s)
 uint32_t ap_pitch_speed = 0;   //Pitch angular speed (rad/s)
 uint32_t ap_yaw_speed = 0;     //Yaw angular speed (rad/s)
@@ -353,16 +353,16 @@ break;
       case MAVLINK_MSG_ID_ATTITUDE:     //30
         ap_roll_angle = mavlink_msg_attitude_get_roll(&msg)*180/3.1416;  //value comes in rads, convert to deg
         // Not upside down
-        if(abs(ap_roll_angle) <= 90)
+        if(abs(ap_roll_angle) >= 175)  // singularity issues at |Pi|
         {
           ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg)*180/3.1416; //value comes in rads, convert to deg
         }
         // Upside down
         else
         {
-          ap_pitch_angle = 180-mavlink_msg_attitude_get_pitch(&msg)*180/3.1416; //value comes in rads, convert to deg
+          ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg)*(-180)/3.1416; // it's belly up - value comes in rads, convert to deg
         }
-        ap_yaw_angle = (mavlink_msg_attitude_get_yaw(&msg)+3.1416)*162.9747; //value comes in rads, add pi and scale to 0 to 1024
+        ap_yaw_angle = mavlink_msg_attitude_get_yaw(&msg)*180/3.1416; //value comes in rads, convert to deg
       
 #ifdef DEBUG_ATTITUDE
         debugSerial.print("MAVLINK Roll Angle: ");
@@ -377,6 +377,9 @@ break;
         debugSerial.print("deg)");
         debugSerial.print("\tMAVLINK Yaw Angle: ");
         debugSerial.print(mavlink_msg_attitude_get_yaw(&msg));
+        debugSerial.print(" (");
+        debugSerial.print(ap_yaw_angle);
+        debugSerial.print("deg)");
         debugSerial.println();
 #endif
       break;
