@@ -50,6 +50,10 @@ end
 
 -- Scan for messages when not visible
 local function background()
+  if ApmTelem_API_VER == nil or ApmTelem_API_VER < API_LEVEL_NEED
+  then 
+    return
+  end
   handleMessage()
 end
 
