@@ -1,4 +1,4 @@
-ApmTelem_ACTIVE = false
+ApmTelem_API_VER = 2
 
 local soundfile_base = "/SOUNDS/en/fm_"
 
