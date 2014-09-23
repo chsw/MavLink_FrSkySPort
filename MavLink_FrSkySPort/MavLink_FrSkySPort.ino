@@ -28,14 +28,15 @@ Data transmitted to FrSky Taranis:
 Cell            ( Voltage of Cell=Cells/(Number of cells). [V]) 
 Cells           ( Voltage from LiPo [V] )
 A2              ( HDOP value * 25 - 8 bit resolution)
-A3              ( Roll angle from -Pi to +Pi radians, converted to degrees - Check A3 settings on radio - Range 362 Offset -180)
-A4              ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to degrees - Check A4 settings on radio - Range 362 Offset -180)
+A3              ( Roll angle from -Pi to +Pi radians, converted to degrees)
+A4              ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to degrees)
 Alt             ( Altitude from baro.  [m] )
 GAlt            ( Altitude from GPS   [m])
-HDG             ( Compass heading  [deg]) v
+HDG             ( Compass heading  [deg])
 Rpm             ( Throttle when ARMED [%] *100 + % battery remaining as reported by Mavlink)
 VSpd            ( Vertical speed [m/s] )
 Speed           ( Ground speed from GPS,  [km/h] )
+AirSpeed        ( Now it is very low airspeed, it's groundspeed in knots)
 T1              ( GPS status = ap_sat_visible*10) + ap_fixtype )
 T2              ( Armed Status and Mavlink Messages :- 16 bit value: bit 1: armed - bit 2-5: severity +1 (0 means no message - bit 6-15: number representing a specific text)
 Vfas            ( same as Cells )
@@ -71,7 +72,7 @@ AccZ            ( Z Axis average vibration m/s?)
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 
 //#define DEBUG_AVERAGE_VOLTAGE
-//#define DEBUG_PARSE_STATUS_TEXT
+#define DEBUG_PARSE_STATUS_TEXT
 
 // ******************************************
 // Message #0  HEARTHBEAT 
@@ -98,7 +99,7 @@ int32_t    ap_gps_altitude = 0;           // 1000 = 1m
 int32_t    ap_gps_speed = 0;
 uint16_t   ap_gps_hdop = 255;             // GPS HDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
 // uint16_t    ap_vdop=0;                 // GPS VDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
-// uint16_t    ap_cog = 0;                // Course over ground (NOT heading, but direction of movement) in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
+uint32_t    ap_cog = 0;                // Course over ground (NOT heading, but direction of movement) in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
 
 
 // Message #74 VFR_HUD 
@@ -120,10 +121,6 @@ int32_t    ap_climb_rate=0;        // 100= 1m/s
 int32_t ap_roll_angle = 0;    //Roll angle (deg -180/180)
 int32_t ap_pitch_angle = 0;   //Pitch angle (deg -180/180)
 int32_t ap_yaw_angle = 0;     //Yaw angle (rad)
-uint32_t ap_roll_speed = 0;    //Roll angular speed (rad/s)
-uint32_t ap_pitch_speed = 0;   //Pitch angular speed (rad/s)
-uint32_t ap_yaw_speed = 0;     //Yaw angular speed (rad/s)
-
 
 // Message #253 MAVLINK_MSG_ID_STATUSTEXT
 uint16_t   ap_status_severity = 255;
@@ -310,6 +307,7 @@ break;
           ap_longitude = mavlink_msg_gps_raw_int_get_lon(&msg);
           ap_gps_altitude = mavlink_msg_gps_raw_int_get_alt(&msg);      // 1m =1000
           ap_gps_speed = mavlink_msg_gps_raw_int_get_vel(&msg);         // 100 = 1m/s
+          ap_cog = mavlink_msg_gps_raw_int_get_cog(&msg);
         }
         else
         {
@@ -329,6 +327,8 @@ break;
         debugSerial.print(mavlink_msg_gps_raw_int_get_eph(&msg)/100.0);
         debugSerial.print(", alt: ");
         debugSerial.print(mavlink_msg_gps_raw_int_get_alt(&msg));
+        debugSerial.print(", cog: ");
+        debugSerial.print(ap_cog);
         debugSerial.println();                                     
 #endif
         break;
@@ -353,14 +353,14 @@ break;
       case MAVLINK_MSG_ID_ATTITUDE:     //30
         ap_roll_angle = mavlink_msg_attitude_get_roll(&msg)*180/3.1416;  //value comes in rads, convert to deg
         // Not upside down
-        if(abs(ap_roll_angle) >= 175)  // singularity issues at |Pi|
+        if(abs(ap_roll_angle) >= 175)  // singularity issues at Pi
         {
           ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg)*180/3.1416; //value comes in rads, convert to deg
         }
         // Upside down
         else
         {
-          ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg)*(-180)/3.1416; // it's belly up - value comes in rads, convert to deg
+          ap_pitch_angle = mavlink_msg_attitude_get_pitch(&msg)*(-180)/3.1416; //value comes in rads, convert to deg
         }
         ap_yaw_angle = mavlink_msg_attitude_get_yaw(&msg)*180/3.1416; //value comes in rads, convert to deg
       

@@ -18,6 +18,7 @@ uint8_t nextVARIO = 0;
 uint8_t nextGPS = 0;
 uint8_t nextDefault = 0;
 
+
 // Scale factor for roll/pitch:
 // We need to scale down 360 deg to fit when max value is 256, and 256 equals 362 deg
 float scalefactor = 360.0/((362.0/360.0)*256.0);
@@ -190,19 +191,17 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
         }
         break;
       case 3:
-      // Note: This is sending GPS Speed now
         if(ap_fixtype==3) {
-          //            FrSkySPort_SendPackage(FR_ID_SPEED,ap_groundspeed *20 );  // from GPS converted to km/h
+        
           FrSkySPort_SendPackage(FR_ID_SPEED,ap_gps_speed *20 );  // from GPS converted to km/h
         }
         break;
       case 4:
-         // Note: This is sending Course Over Ground from GPS as Heading
-         // before we were sending this: FrSkySPort_SendPackage(FR_ID_HEADING,ap_cog * 100); 
-
-        FrSkySPort_SendPackage(FR_ID_GPS_COURSE, ap_heading * 100);   // 10000 = 100 deg
+        
+        FrSkySPort_SendPackage(FR_ID_GPS_COURSE, ap_heading*100);   // 10000 = 100 deg
         break;
       }
+      
       if(++nextGPS > 4)
         nextGPS = 0;
     }
@@ -269,9 +268,16 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       {
         FrSkySPort_SendPackage(FR_ID_FUEL,ap_custom_mode); 
       }
-      break;      
+      break;  
+  case 9:
+      // m/s to knots according to google 1.94384
+    
+      FrSkySPort_SendPackage(FR_ID_AIR_SPEED_FIRST,ap_groundspeed*1.94384);
+      break;
+      
+        
     }
-    if(++nextDefault > 8)
+    if(++nextDefault > 9)
       nextDefault = 0;
   default: 
 #ifdef DEBUG_FRSKY_SENSOR_REQUEST
