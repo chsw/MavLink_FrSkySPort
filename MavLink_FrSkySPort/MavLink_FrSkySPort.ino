@@ -72,7 +72,7 @@ AccZ            ( Z Axis average vibration m/s?)
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 
 //#define DEBUG_AVERAGE_VOLTAGE
-#define DEBUG_PARSE_STATUS_TEXT
+//#define DEBUG_PARSE_STATUS_TEXT
 
 // ******************************************
 // Message #0  HEARTHBEAT 
