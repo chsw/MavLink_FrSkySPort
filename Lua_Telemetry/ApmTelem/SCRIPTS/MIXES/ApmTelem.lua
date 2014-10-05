@@ -58,22 +58,22 @@ end
 
 local function decodeApmStatusText(textnr)
 	if     textnr == 1  then return {enabled=false, silent=false, text="ARMING MOTORS", soundfile=""}
-	elseif textnr == 2  then return {enabled=true, silent=false, text="PreArm: RC not calibrated", soundfile=""}
-	elseif textnr == 3  then return {enabled=true, silent=false, text="PreArm: Baro not healthy", soundfile=""}
-	elseif textnr == 4  then return {enabled=true, silent=false, text="PreArm: Alt disparity", soundfile=""}
-	elseif textnr == 5  then return {enabled=true, silent=false, text="PreArm: Compass not healthy", soundfile=""}
-	elseif textnr == 6  then return {enabled=true, silent=false, text="PreArm: Compass not calibrated", soundfile=""}
-	elseif textnr == 7  then return {enabled=true, silent=false, text="PreArm: Compass offsets too high", soundfile=""}
-	elseif textnr == 8  then return {enabled=true, silent=false, text="PreArm: Check mag field", soundfile=""}
-	elseif textnr == 9  then return {enabled=true, silent=false, text="PreArm: INS not calibrated", soundfile=""}
-	elseif textnr == 10 then return {enabled=true, silent=false, text="PreArm: INS not healthy", soundfile=""}
-	elseif textnr == 11 then return {enabled=true, silent=false, text="PreArm: Check Board Voltage", soundfile=""}
-	elseif textnr == 12 then return {enabled=true, silent=false, text="PreArm: Ch7&Ch8 Opt cannot be same", soundfile=""}
-	elseif textnr == 13 then return {enabled=true, silent=false, text="PreArm: Check FS_THR_VALUE", soundfile=""}
-	elseif textnr == 14 then return {enabled=true, silent=false, text="PreArm: Check ANGLE_MAX", soundfile=""}
-	elseif textnr == 15 then return {enabled=true, silent=false, text="PreArm: ACRO_BAL_ROLL/PITCH", soundfile=""}
-	elseif textnr == 16 then return {enabled=true, silent=false, text="PreArm: GPS Glitch", soundfile=""}
-	elseif textnr == 17 then return {enabled=true, silent=false, text="PreArm: Need 3D Fix", soundfile="aapm_prearm.wav"}
+	elseif textnr == 2  then return {enabled=true, silent=false, text="PreArm: RC not calibrated", soundfile="apm_prearm.wav"}
+	elseif textnr == 3  then return {enabled=true, silent=false, text="PreArm: Baro not healthy", soundfile="apm_prearm.wav"}
+	elseif textnr == 4  then return {enabled=true, silent=false, text="PreArm: Alt disparity", soundfile="apm_prearm.wav"}
+	elseif textnr == 5  then return {enabled=true, silent=false, text="PreArm: Compass not healthy", soundfile="apm_prearm.wav"}
+	elseif textnr == 6  then return {enabled=true, silent=false, text="PreArm: Compass not calibrated", soundfile="apm_prearm.wav"}
+	elseif textnr == 7  then return {enabled=true, silent=false, text="PreArm: Compass offsets too high", soundfile="apm_prearm.wav"}
+	elseif textnr == 8  then return {enabled=true, silent=false, text="PreArm: Check mag field", soundfile="apm_prearm.wav"}
+	elseif textnr == 9  then return {enabled=true, silent=false, text="PreArm: INS not calibrated", soundfile="apm_prearm.wav"}
+	elseif textnr == 10 then return {enabled=true, silent=false, text="PreArm: INS not healthy", soundfile="apm_prearm.wav"}
+	elseif textnr == 11 then return {enabled=true, silent=false, text="PreArm: Check Board Voltage", soundfile="apm_prearm.wav"}
+	elseif textnr == 12 then return {enabled=true, silent=false, text="PreArm: Ch7&Ch8 Opt cannot be same", soundfile="apm_prearm.wav"}
+	elseif textnr == 13 then return {enabled=true, silent=false, text="PreArm: Check FS_THR_VALUE", soundfile="apm_prearm.wav"}
+	elseif textnr == 14 then return {enabled=true, silent=false, text="PreArm: Check ANGLE_MAX", soundfile="apm_prearm.wav"}
+	elseif textnr == 15 then return {enabled=true, silent=false, text="PreArm: ACRO_BAL_ROLL/PITCH", soundfile="apm_prearm.wav"}
+	elseif textnr == 16 then return {enabled=true, silent=false, text="PreArm: GPS Glitch", soundfile="apm_prearm.wav"}
+	elseif textnr == 17 then return {enabled=true, silent=false, text="PreArm: Need 3D Fix", soundfile="apm_prearm.wav"}
 	elseif textnr == 18 then return {enabled=true, silent=false, text="PreArm: Bad Velocity", soundfile="apm_prearm.wav"}
 	elseif textnr == 19 then return {enabled=true, silent=false, text="PreArm: High GPS HDOP", soundfile="apm_prearm.wav"}
 	
@@ -119,7 +119,7 @@ local function decodeApmStatusText(textnr)
 	elseif textnr ==  47 then return {enabled=true, silent=false, text="error setting rally point", soundfile=""}
 	elseif textnr ==  48 then return {enabled=true, silent=false, text="bad rally point index", soundfile=""}
 	elseif textnr ==  49 then return {enabled=true, silent=false, text="failed to set rally point", soundfile=""}
-	elseif textnr ==  93 then return {enabled=true, silent=true, text="Initialising APM...", soundfile=""}
+	elseif textnr ==  93 then return {enabled=false, silent=true, text="Initialising APM...", soundfile=""}
   
 	elseif textnr ==  50 then return {enabled=true, silent=false, text="Erasing logs", soundfile=""}
 	elseif textnr ==  51 then return {enabled=true, silent=false, text="Log erase complete", soundfile=""}
