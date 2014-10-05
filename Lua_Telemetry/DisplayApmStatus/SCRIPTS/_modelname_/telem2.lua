@@ -33,18 +33,36 @@ local function handleMessage()
   local message = getApmActiveStatus()
   if message ~= nil and (last_message == nil or message.timestamp ~= last_message.timestamp)
   then 
-    global_new_messages = true
+	-- Call override-method before we do anything
+	
+	-- Check if message is disabled
+	if message.enabled == false
+	then
+		return	
+	end
+	-- If message is marked as silent - don't activte global flag
+    if message.silent == false
+	then
+		global_new_messages = true
+	end
+	-- Store message as last message
     last_message = message
+	-- Find the last message in array
 	local i = 1
     while messages[i] ~= nil 
 	do
       i = i + 1
     end
+	-- Move all stored messages back in array
 	for i=i, 2, -1
 	do
 	  messages[i] = messages[i-1]
 	end
+	-- Put the last message first
 	messages[1] = {text = message.message, timestamp = message.timestamp, severity = message.severity }
+	-- Call to sound if enabled
+	local soundfile_base = "/SOUNDS/en/"
+	playFile(soundfile_base  .. message.soundfile)
   end
 end
 
