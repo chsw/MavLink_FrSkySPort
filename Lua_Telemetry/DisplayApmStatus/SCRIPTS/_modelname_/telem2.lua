@@ -47,11 +47,16 @@ local function handleMessage()
 	end
 	-- Store message as last message
     last_message = message
-	-- Find the last message in array
+	-- Search for the next free position
 	local i = 1
     while messages[i] ~= nil 
 	do
       i = i + 1
+	  -- Limit history length
+	  if i >= 20
+	  then
+		break
+	  end
     end
 	-- Move all stored messages back in array
 	for i=i, 2, -1
@@ -61,8 +66,10 @@ local function handleMessage()
 	-- Put the last message first
 	messages[1] = {text = message.message, timestamp = message.timestamp, severity = message.severity }
 	-- Call to sound if enabled
-	local soundfile_base = "/SOUNDS/en/"
-	playFile(soundfile_base  .. message.soundfile)
+	if playApmMessage ~= nil
+	then
+		playApmMessage(message)
+	end
   end
 end
 
