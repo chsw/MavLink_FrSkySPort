@@ -9,6 +9,16 @@ local function init()
 	
 end
 
+local function overrideMessage(message)
+--  if message.id == 93 then
+--	message.message = "New Text"
+--	message.soundfile = "apm_flightplan_rej.wav"
+--	message.silent = true
+--	message.enabled = true
+ -- end
+  return message
+end
+
 -- Format a number to a string with 2 digits. 
 local function asTimeNumber(number)
 	if number < 10
@@ -34,7 +44,7 @@ local function handleMessage()
   if message ~= nil and (last_message == nil or message.timestamp ~= last_message.timestamp)
   then 
 	-- Call override-method before we do anything
-	
+	message = overrideMessage(message)
 	-- Check if message is disabled
 	if message.enabled == false
 	then

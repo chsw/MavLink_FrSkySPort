@@ -131,7 +131,7 @@ local function decodeApmStatusText(textnr)
 	elseif textnr ==  55 then return {enabled=true, silent=false, text="No dataflash inserted", soundfile=""}
 	elseif textnr ==  56 then return {enabled=true, silent=false, text="ERASING LOGS", soundfile=""}
 	elseif textnr ==  57 then return {enabled=true, silent=false, text="Waiting for first HIL_STATE message", soundfile=""}
-	elseif textnr ==  94 then return {enabled=true, silent=false, text="GROUND START", soundfile=""}
+	elseif textnr ==  94 then return {enabled=false, silent=false, text="GROUND START", soundfile=""}
 	elseif textnr ==  95 then return {enabled=true, silent=false, text="<startup_ground> GROUND START", soundfile=""}
 	elseif textnr ==  96 then return {enabled=true, silent=false, text="<startup_ground> With Delay", soundfile=""}
 	elseif textnr ==  61 then return {enabled=true, silent=false, text="Ready to FLY.", soundfile=""}
@@ -201,6 +201,7 @@ function getApmActiveStatus()
 	
 	local returnvalue = {
 		timestamp = apm_status_message.timestamp, 
+		id = apm_status_message.textnr,
 		message = decoded.text, 
 		severity = apm_status_message.severity,
 		silent = decoded.silent,
