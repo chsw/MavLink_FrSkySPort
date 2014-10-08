@@ -407,7 +407,6 @@
 					else
 					lcd.drawTimer(0,9,eff-model.getTimer(0).value,MIDSIZE)
 					end
-					battremaining=100
 					lcd.drawNumber(lcd.getLastPos()+25,9,round(battremaining),MIDSIZE)
 					lcd.drawText(lcd.getLastPos(),9,"%",MIDSIZE)
 
