@@ -39,32 +39,57 @@ I could not find a way to have the Flight Controller report the settings for som
 But the screen deserves some explanation, so here goes:
 
 A-Current Flight Mode Active as reported by the Flight Controller. If blinking the vehicle is not Armed.
+
 B-Current Flight Mode Timer. Each Flight Mode has its own timer. The timer stops if the vehicle is not Armed.
+
 C-Radio Transmitter Battery Voltage.
+
 D-RSSI value
+
 E-Estimated Flight Time. 
+
 F-Available Vehicle battery capacity. 
+
 E and F are inter related. When the vehicle is armed, the script checks the voltage and calculates the number of cells and estimates the status of the vehicle battery. This is then combined with the available capacity reported by the flight controller.
 E is calculated based on the rate of decay of reported capacity.
 These are highly experimental and not to be considered real, but simple estimates.
+
 G-Actual consumed power in mAh
+
 H-Actual power output in Watts (VxA)
+
 I-Reported Flight Battery Voltage
+
 J-Reported Flight Battery Current
+
 K-Vertical Gauge that shows the actual Throttle output (not the Throttle stick position but the actual output reported by the Flight Controller)
+
 L-Vehicle Height
+
 M-Max Height
+
 N-Vertical speed
+
 O-Vertical Speed Indicator (up or down)
+
 P-Heading
+
 Q-Roll angle
+
 R-Armed Time Timer - Starts and stops when the Vehicle is armed/disarmed
+
 S-Speed
+
 T-Pitch Indicator. When over 45 degrees the indicator is replaced by 3 up or 3 down indicators
+
 U-GPS Indicator. Three different graphics dependent on GPS status, 3D, 2D or no status
+
 V-HDop indicator. Blinks when over 2
+
 W-Number of reported satellites
+
 X-Distance to home (Distance to the point the Taranis received a good satellite fix)
+
 Y-Heading to home (Heading to the point the Taranis received a good satellite fix)
 
 When changing flight modes the radio says Flight Mode X engaged when the switch is moved and Flight Mode X active when the Flight Controller reports it. If there is a mismatch or the Flight Controller doesn't not report the Flight Mode as set by the switches you'll be notified.
