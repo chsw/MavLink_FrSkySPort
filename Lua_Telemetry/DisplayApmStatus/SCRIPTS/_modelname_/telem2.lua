@@ -9,15 +9,15 @@ local function init()
 	
 end
 
-local function overrideMessage(message)
+--function overrideApmStatusMessage(message)
 --  if message.id == 93 then
 --	message.message = "New Text"
---	message.soundfile = "apm_flightplan_rej.wav"
+--	message.soundfile = "apm_autotune_start.wav"
 --	message.silent = true
 --	message.enabled = true
- -- end
-  return message
-end
+--  end
+--  return message
+--end
 
 -- Format a number to a string with 2 digits. 
 local function asTimeNumber(number)
@@ -43,13 +43,6 @@ local function handleMessage()
   local message = getApmActiveStatus()
   if message ~= nil and (last_message == nil or message.timestamp ~= last_message.timestamp)
   then 
-	-- Call override-method before we do anything
-	message = overrideMessage(message)
-	-- Check if message is disabled
-	if message.enabled == false
-	then
-		return	
-	end
 	-- If message is marked as silent - don't activte global flag
     if message.silent == false
 	then
