@@ -87,10 +87,10 @@ local function decodeApmStatusText(textnr)
 	elseif textnr == 91 then return {enabled=false, silent=false, text="barometer calibration complete", soundfile=""}
 	elseif textnr == 92 then return {enabled=false, silent=false, text="zero airspeed calibrated", soundfile=""}
 	
-	elseif textnr == 24 then return {enabled=true, silent=false, text="AutoTune: Started", soundfile=""}
-	elseif textnr == 25 then return {enabled=true, silent=false, text="AutoTune: Stopped", soundfile=""}
-	elseif textnr == 26 then return {enabled=true, silent=false, text="AutoTune: Success", soundfile=""}
-	elseif textnr == 27 then return {enabled=true, silent=false, text="AutoTune: Failed", soundfile=""}
+	elseif textnr == 24 then return {enabled=true, silent=false, text="AutoTune: Started", soundfile="apm_autotune_start.wav"}
+	elseif textnr == 25 then return {enabled=true, silent=false, text="AutoTune: Stopped", soundfile="apm_autotune_stop.wav"}
+	elseif textnr == 26 then return {enabled=true, silent=false, text="AutoTune: Success", soundfile="apm_autotune_done.wav"}
+	elseif textnr == 27 then return {enabled=true, silent=false, text="AutoTune: Failed", soundfile="apm_autotune_fail.wav"}
 
 	elseif textnr == 28 then return {enabled=true, silent=false, text="Crash: Disarming", soundfile=""}
 	elseif textnr == 29 then return {enabled=true, silent=false, text="Parachute: Released!", soundfile=""}
@@ -193,12 +193,7 @@ function getApmActiveStatus()
 	then
 		decoded = {enabled=true, silent=false, text=decodeApmWarning(apm_status_message.severity)..apm_status_message.textnr, soundfile=""}
 	end
-	
---	if decoded.enabled == false
---	then 
---		return nil
---	end
-	
+
 	local returnvalue = {
 		timestamp = apm_status_message.timestamp, 
 		id = apm_status_message.textnr,
@@ -207,6 +202,16 @@ function getApmActiveStatus()
 		silent = decoded.silent,
 		enabled = decoded.enabled,
 		soundfile = decoded.soundfile}
+    -- Call override if defined
+	if overrideApmStatusMessage~=nil
+	then
+		returnvalue = overrideApmStatusMessage(returnvalue)
+	end
+	-- If value is disabled - don't return anything
+	if returnvalue.enabled == false
+	then
+		return nil
+	end
 	return returnvalue
 end
 
@@ -217,36 +222,6 @@ function getApmActiveStatusSeverity()
 	end
 	return decodeApmWarning(apm_status_message.severity)
 end
-
---function getApmActiveStatusText()
---	if isApmActiveStatus() == false
---	then 
---		return ""
---	end
---	local result = decodeApmStatusText(apm_status_message.textnr)
---	if result == nil or result.enabled == false
---	then 
---		return ""
---	end
---	return result.text
---end
-
---function getApmActiveWarnings(includeUnknown)
---	local severity = getApmActiveStatusSeverity()
---	local text = getApmActiveStatusText()
-	
---	if includeUnknown == false or text ~= "" 
---	then 
---		return text
---	end
-	
---	if severity == "" 
---	then 
---		return ""
---	end
-	
---	return severity..apm_status_message.textnr;
---end
 
 function isApmActiveStatus()
 	if apm_status_message.timestamp > 0
