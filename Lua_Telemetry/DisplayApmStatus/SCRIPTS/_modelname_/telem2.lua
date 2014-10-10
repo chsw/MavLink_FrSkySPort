@@ -68,11 +68,7 @@ local function handleMessage()
 	end
 	-- Put the last message first
 	messages[1] = {text = message.message, timestamp = message.timestamp, severity = message.severity }
-	-- Call to sound if enabled
-	if playApmMessage ~= nil
-	then
-		playApmMessage(message)
-	end
+
   end
 end
 

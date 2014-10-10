@@ -2,7 +2,7 @@ ApmTelem_API_VER = 2
 
 local soundfile_base = "/SOUNDS/en/fm_"
 
-local apm_status_message = {severity = 0, textnr = 0, timestamp=0}
+local apm_status_message = {severity=0, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
 
 local outputs = {"armd"}
 
@@ -57,6 +57,7 @@ local function decodeApmWarning(severity)
 end
 
 local function decodeApmStatusText(textnr)
+	
 	if     textnr == 1  then return {enabled=false, silent=false, text="ARMING MOTORS", soundfile=""}
 	elseif textnr == 2  then return {enabled=true, silent=false, text="PreArm: RC not calibrated", soundfile="apm_prearm.wav"}
 	elseif textnr == 3  then return {enabled=true, silent=false, text="PreArm: Baro not healthy", soundfile="apm_prearm.wav"}
@@ -182,36 +183,68 @@ local function decodeApmStatusText(textnr)
 	return nil
 end
 
+local function newApmStatus(severity, textid)
+	apm_status_message.severity = severity
+	apm_status_message.id = textid
+	apm_status_message.timestamp = getTime()
+	local decoded = decodeApmStatusText(textid)
+	if decoded ~= nil
+	then
+		apm_status_message.enabled=decoded.enabled
+		apm_status_message.silent=decoded.silent
+		apm_status_message.message=decoded.text
+		apm_status_message.soundfile=decoded.soundfile
+	else 
+		apm_status_message.enabled=true
+		apm_status_message.silent=false
+		apm_status_message.message=decodeApmWarning(apm_status_message.severity)..apm_status_message.id
+		apm_status_message.soundfile=""
+	end
+	-- Call override if defined
+	if overrideApmStatusMessage ~= nil
+	then
+		local overridden = overrideApmStatusMessage(cloneStatusMessage(apm_status_message))
+		apm_status_message.enabled = overridden.enabled
+		apm_status_message.silent = overridden.silent
+		apm_status_message.message = overridden.message
+		apm_status_message.soundfile = overridden.soundfile
+	end
+	
+	-- If message is enabled and we can play sound - play it
+	if apm_status_message.enabled == true and playApmMessage ~= nil
+	then
+		playApmMessage(apm_status_message)
+	end
+end
+
+local function clearApmStatus()
+ apm_status_message.severity = 0
+ apm_status_message.id = 0
+ apm_status_message.timestamp = 0
+ apm_status_message.message = ""
+ apm_status_message.enabled = false
+ apm_status_message.silent = true
+ apm_status_message.soundfile = ""
+end
+
+local function cloneStatusMessage()
+	local returnvalue = {
+		timestamp = apm_status_message.timestamp, 
+		id = apm_status_message.id,
+		message = apm_status_message.message, 
+		severity = apm_status_message.severity,
+		silent = apm_status_message.silent,
+		enabled = apm_status_message.enabled,
+		soundfile = apm_status_message.soundfile}
+	return returnvalue
+end
+
 function getApmActiveStatus()
 	if isApmActiveStatus() == false
 	then 
 		return nil
 	end
-	local decoded = decodeApmStatusText(apm_status_message.textnr)
-	-- If we coulnd't decode it - show a generic value
-	if(decoded == nil)
-	then
-		decoded = {enabled=true, silent=false, text=decodeApmWarning(apm_status_message.severity)..apm_status_message.textnr, soundfile=""}
-	end
-
-	local returnvalue = {
-		timestamp = apm_status_message.timestamp, 
-		id = apm_status_message.textnr,
-		message = decoded.text, 
-		severity = apm_status_message.severity,
-		silent = decoded.silent,
-		enabled = decoded.enabled,
-		soundfile = decoded.soundfile}
-    -- Call override if defined
-	if overrideApmStatusMessage~=nil
-	then
-		returnvalue = overrideApmStatusMessage(returnvalue)
-	end
-	-- If value is disabled - don't return anything
-	if returnvalue.enabled == false
-	then
-		return nil
-	end
+	local returnvalue = cloneStatusMessage()
 	return returnvalue
 end
 
@@ -273,7 +306,6 @@ function getApmArmed()
 	return getValue(210)%2 > 0 -- Temp2
 end
 
-
 -- The heading to pilot home position - relative to apm position
 function getApmHeadingHome()
   local pilotlat = getValue("pilot-latitude")
@@ -314,23 +346,19 @@ local function run_func()
 	local status_textnr = t2%0x400;
 	if(status_severity > 0)
 	then
-		if status_severity ~= apm_status_message.severity or status_textnr ~= apm_status_message.textnr
+		if status_severity ~= apm_status_message.severity or status_textnr ~= apm_status_message.id
 		then
-			apm_status_message.severity = status_severity
-			apm_status_message.textnr = status_textnr
-			apm_status_message.timestamp = getTime()
+			newApmStatus(status_severity, status_textnr)
 		end
 	end
-	if apm_status_message.timestamp > 0 and (apm_status_message.timestamp + 2*100) < getTime()
+	if apm_status_message.timestamp > 0 and (apm_status_message.timestamp + 250) < getTime()
 	then
-		apm_status_message.severity = 0
-		apm_status_message.textnr = 0
-		apm_status_message.timestamp = 0
+		clearApmStatus()
 	end
 
 	-- Calculate return value (armed)
 	local armd = 0
-	if(getApmArmed() == true)
+	if getApmArmed() == true
 	then
 		armd = 1024
 	else
