@@ -210,7 +210,7 @@ void parseStatusText(int32_t severity, String text)
   // Texts with textId = 0 will be ignored
 
   // motors.pde
-       if(text == "ARMING MOTORS")                                         textId = 0;
+       if(text == "ARMING MOTORS")                                         textId = 1;
   else if(text == "PreArm: RC not calibrated")                             textId = 2;
   else if(text == "PreArm: Baro not healthy")                              textId = 3;
   else if(text == "PreArm: Alt disparity")                                 textId = 4;
@@ -233,12 +233,12 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "Arm: Thr below FS")                                     textId = 21;
   else if(text == "Arm: Leaning")                                          textId = 22;
   else if(text == "Arm: Safety Switch")                                    textId = 23;
-  else if(text == "DISARMING MOTORS")                                      textId = 0;
+  else if(text == "DISARMING MOTORS")                                      textId = 89;
   
   // plane/copter sensors.pde
-  else if(text == "Calibrating barometer")                                 textId = 0;
-  else if(text == "barometer calibration complete")                        textId = 0;
-  else if(text == "zero airspeed calibrated")                              textId = 0;
+  else if(text == "Calibrating barometer")                                 textId = 90;
+  else if(text == "barometer calibration complete")                        textId = 91;
+  else if(text == "zero airspeed calibrated")                              textId = 92;
   
   // control_autotune.pde
   else if(text == "AutoTune: Started")                                     textId = 24;
@@ -279,7 +279,7 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "error setting rally point")                             textId = 47;
   else if(text == "bad rally point index")                                 textId = 48;
   else if(text == "failed to set rally point")                             textId = 49;
-  else if(text == "Initialising APM...")                                   textId = 0;
+  else if(text == "Initialising APM...")                                   textId = 93;
   
   // copter/plane Log.pde
   else if(text.startsWith("Erasing logs"))                                 textId = 50;
@@ -294,11 +294,11 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "No dataflash inserted")                                 textId = 55;
   else if(text == "ERASING LOGS")                                          textId = 56;
   else if(text == "Waiting for first HIL_STATE message")                   textId = 57;
-  else if(text == "GROUND START")                                          textId = 0;
-  else if(text == "<startup_ground> GROUND START")                         textId = 0;
-  else if(text == "<startup_ground> With Delay")                           textId = 0;
+  else if(text == "GROUND START")                                          textId = 94;
+  else if(text == "<startup_ground> GROUND START")                         textId = 95;
+  else if(text == "<startup_ground> With Delay")                           textId = 96;
   else if(text.endsWith("Ready to FLY."))                                  textId = 61;
-  else if(text == "Beginning INS calibration; do not move plane")          textId = 0;
+  else if(text == "Beginning INS calibration; do not move plane")          textId = 97;
   else if(text == "NO airspeed")                                           textId = 62;
   
   // AntennaTracker GCS_Mavnlink.pde
@@ -306,8 +306,8 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "new HOME received")                                     textId = 60;
 
   // AntennaTracker system.pde
-  else if(text.endsWith("Ready to track.  "))                              textId = 0;
-  else if(text == "Beginning INS calibration; do not move tracker")        textId = 0;
+  else if(text.endsWith("Ready to track.  "))                              textId = 98;
+  else if(text == "Beginning INS calibration; do not move tracker")        textId = 99;
   
   // Arduplane.pde
   else if(text == "Disable fence failed (autodisable)")                    textId = 63;
@@ -345,6 +345,9 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "geo-fence setup error")                                 textId = 83;
   else if(text == "geo-fence OK")                                          textId = 84;
   else if(text == "geo-fence triggered")                                   textId = 85;
+
+  // Arducopter commands_logic.pde
+  else if(text.startsWith("Reached Command #"))                            textId = 88;
   
   // Libraries GCS_Common.cpp
   else if(text == "flight plan update rejected")                           textId = 86;

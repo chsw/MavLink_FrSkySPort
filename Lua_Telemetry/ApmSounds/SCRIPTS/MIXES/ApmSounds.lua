@@ -6,6 +6,11 @@ local last_flight_mode_play = 0
 local received_telemetry = false
 local first_telemetry = -1
 
+function playApmMessage(message)
+	local soundfile_base = "/SOUNDS/en/"
+	playFile(soundfile_base  .. message.soundfile)
+end
+
 local function nextRepeatFlightmode(mode)
   if last_flight_mode_play < 1 then
 	return 0

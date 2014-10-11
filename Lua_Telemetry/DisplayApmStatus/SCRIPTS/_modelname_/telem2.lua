@@ -9,6 +9,16 @@ local function init()
 	
 end
 
+--function overrideApmStatusMessage(message)
+--  if message.id == 93 then
+--	message.message = "New Text"
+--	message.soundfile = "apm_autotune_start.wav"
+--	message.silent = true
+--	message.enabled = true
+--  end
+--  return message
+--end
+
 -- Format a number to a string with 2 digits. 
 local function asTimeNumber(number)
 	if number < 10
@@ -33,18 +43,32 @@ local function handleMessage()
   local message = getApmActiveStatus()
   if message ~= nil and (last_message == nil or message.timestamp ~= last_message.timestamp)
   then 
-    global_new_messages = true
+	-- If message is marked as silent - don't activte global flag
+    if message.silent == false
+	then
+		global_new_messages = true
+	end
+	-- Store message as last message
     last_message = message
+	-- Search for the next free position
 	local i = 1
     while messages[i] ~= nil 
 	do
       i = i + 1
+	  -- Limit history length
+	  if i >= 20
+	  then
+		break
+	  end
     end
+	-- Move all stored messages back in array
 	for i=i, 2, -1
 	do
 	  messages[i] = messages[i-1]
 	end
+	-- Put the last message first
 	messages[1] = {text = message.message, timestamp = message.timestamp, severity = message.severity }
+
   end
 end
 
