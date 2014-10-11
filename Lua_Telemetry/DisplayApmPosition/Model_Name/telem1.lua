@@ -264,7 +264,7 @@
 									lcd.drawPixmap(171,33,"/SCRIPTS/BMP/NOGPS.bmp")
 
 								end
-									lcd.drawText(180, 29, getValue("distance").."m", 0)
+									lcd.drawText(180, 29, getValue(212).."m", 0)
 					end
 
 					local function speedpanel()
