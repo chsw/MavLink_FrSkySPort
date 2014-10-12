@@ -2,7 +2,7 @@ ApmTelem_API_VER = 2
 
 local soundfile_base = "/SOUNDS/en/fm_"
 
-local apm_status_message = {severity=0, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
+local apm_status_message = {severity=nil, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
 
 local outputs = {"armd"}
 
@@ -43,15 +43,15 @@ end
 
 local function decodeApmWarning(severity)
 	-- +10 is added to mavlink-value so 0 represents no warning
-	if     severity == 0 then return ""
-	elseif severity == 1 then return "Emergency"
-	elseif severity == 2 then return "Alert"
-	elseif severity == 3 then return "Critical"
-	elseif severity == 4 then return "Error"
-	elseif severity == 5 then return "Warning"
-	elseif severity == 6 then return "Notice"
-	elseif severity == 7 then return "Info"
-	elseif severity == 8 then return "Debug"
+	if     severity == nil then return ""
+	elseif severity == 0 then return "Emergency"
+	elseif severity == 1 then return "Alert"
+	elseif severity == 2 then return "Critical"
+	elseif severity == 3 then return "Error"
+	elseif severity == 4 then return "Warning"
+	elseif severity == 5 then return "Notice"
+	elseif severity == 6 then return "Info"
+	elseif severity == 7 then return "Debug"
 	end
 	return "Unknown"
 end
@@ -203,7 +203,8 @@ local function newApmStatus(severity, textid)
 	-- Call override if defined
 	if overrideApmStatusMessage ~= nil
 	then
-		local overridden = overrideApmStatusMessage(cloneStatusMessage(apm_status_message))
+		local overridden = cloneStatusMessage(apm_status_message)
+		overridden = overrideApmStatusMessage(overridden)
 		apm_status_message.enabled = overridden.enabled
 		apm_status_message.silent = overridden.silent
 		apm_status_message.message = overridden.message
@@ -218,7 +219,7 @@ local function newApmStatus(severity, textid)
 end
 
 local function clearApmStatus()
- apm_status_message.severity = 0
+ apm_status_message.severity = nil
  apm_status_message.id = 0
  apm_status_message.timestamp = 0
  apm_status_message.message = ""
@@ -240,7 +241,7 @@ local function cloneStatusMessage()
 end
 
 function getApmActiveStatus()
-	if isApmActiveStatus() == false or apm_status_message.enabled == false
+	if isApmActiveStatus() == false or apm_status_message.enabled == false 
 	then 
 		return nil
 	end
@@ -341,10 +342,15 @@ local function run_func()
 	local t2 = getValue(210) -- Temp2
 	local armed = t2%0x02;
 	t2 = (t2-armed)/0x02;
-	local status_severity = t2%0x10;
-	t2 = (t2-status_severity)/0x10;
-	local status_textnr = t2%0x400;
-	if(status_severity > 0)
+	local status_severity = t2%0x10
+	t2 = (t2-status_severity)/0x10
+	local status_textnr = t2%0x400
+	status_severity = status_severity-1
+	if status_severity < 0 
+	then 
+		status_severity = nil
+	end
+	if status_severity ~= nil
 	then
 		if status_severity ~= apm_status_message.severity or status_textnr ~= apm_status_message.id
 		then
