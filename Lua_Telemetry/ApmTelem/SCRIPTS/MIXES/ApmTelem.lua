@@ -240,7 +240,7 @@ local function cloneStatusMessage()
 end
 
 function getApmActiveStatus()
-	if isApmActiveStatus() == false
+	if isApmActiveStatus() == false or apm_status_message.enabled == false
 	then 
 		return nil
 	end
