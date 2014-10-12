@@ -56,6 +56,18 @@ local function decodeApmWarning(severity)
 	return "Unknown"
 end
 
+local function cloneStatusMessage()
+	local returnvalue = {
+		timestamp = apm_status_message.timestamp, 
+		id = apm_status_message.id,
+		message = apm_status_message.message, 
+		severity = apm_status_message.severity,
+		silent = apm_status_message.silent,
+		enabled = apm_status_message.enabled,
+		soundfile = apm_status_message.soundfile}
+	return returnvalue
+end
+
 local function decodeApmStatusText(textnr)
 	
 	if     textnr == 1  then return {enabled=false, silent=false, text="ARMING MOTORS", soundfile=""}
@@ -203,8 +215,7 @@ local function newApmStatus(severity, textid)
 	-- Call override if defined
 	if overrideApmStatusMessage ~= nil
 	then
-		local overridden = cloneStatusMessage(apm_status_message)
-		overridden = overrideApmStatusMessage(overridden)
+		local overridden = overrideApmStatusMessage(cloneStatusMessage(apm_status_message))
 		apm_status_message.enabled = overridden.enabled
 		apm_status_message.silent = overridden.silent
 		apm_status_message.message = overridden.message
@@ -226,18 +237,6 @@ local function clearApmStatus()
  apm_status_message.enabled = false
  apm_status_message.silent = true
  apm_status_message.soundfile = ""
-end
-
-local function cloneStatusMessage()
-	local returnvalue = {
-		timestamp = apm_status_message.timestamp, 
-		id = apm_status_message.id,
-		message = apm_status_message.message, 
-		severity = apm_status_message.severity,
-		silent = apm_status_message.silent,
-		enabled = apm_status_message.enabled,
-		soundfile = apm_status_message.soundfile}
-	return returnvalue
 end
 
 function getApmActiveStatus()
