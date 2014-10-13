@@ -1,5 +1,5 @@
 -- Don't change these
-local API_LEVEL_NEED = 2
+local API_LEVEL_NEED = 3
 
 local messages = {}
 local last_message = nil

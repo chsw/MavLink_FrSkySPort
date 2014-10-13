@@ -2,7 +2,7 @@
 local capacity_max = 4000
 
 -- Don't change these
-local API_LEVEL_NEED = 2
+local API_LEVEL_NEED = 3
 local function init()
 
 end
@@ -36,7 +36,7 @@ local function run(event)
   -- Ohterwise show the battery gauge
   else
 	  -- Battery gauge
-	  local telem_mah = getValue("consumption")
+	  local telem_mah = getTaranisValueCached(218)
 	  lcd.drawGauge(1, 55, 90, 8, capacity_max - telem_mah, capacity_max)
 	  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
   end
@@ -82,10 +82,9 @@ local function run(event)
 -- Line 3
   lcd.drawText(1, 25, "Speed: "..getValue("speed").."km/h Heading: "..getValue("heading").."@", 0)
 -- Line 4
-  lcd.drawText(1, 35, "Power: "..getValue("vfas").."V ("..getValue("cell-min").."V) "..getValue("current").."A "..getValue("power").."W", 0)
+  lcd.drawText(1, 35, "Power: "..getTaranisValueActive(216).."V ("..getTaranisValueActive(214).."V) "..getTaranisValueActive(217).."A "..getTaranisValueActive(219).."W", 0)
 -- Line 5
-  lcd.drawText(1, 45, "Peaks: "..getValue("vfas-min").."V ("..getValue("cell-min-min").."V) "..getValue("current-max").."A "..getValue("power-max").."W", 0)
-
+  lcd.drawText(1, 45, "Peaks: "..getTaranisValueCached(246).."V ("..getTaranisValueCached(244).."V) "..getTaranisValueCached(247).."A "..getTaranisValueCached(248).."W", 0)
 -- Right column:
 
 

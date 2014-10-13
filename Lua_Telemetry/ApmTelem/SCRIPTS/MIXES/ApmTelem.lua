@@ -1,10 +1,11 @@
-ApmTelem_API_VER = 2
+ApmTelem_API_VER = 3
 
 local soundfile_base = "/SOUNDS/en/fm_"
 
 local apm_status_message = {severity=nil, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
 
 local outputs = {"armd"}
+local cachedValues = {}
 
 local function init()
 	ApmTelem_ACTIVE = true
@@ -334,6 +335,34 @@ end
 local function getWarningTimeout()
 	-- 2 second timeout
 	return getTime() + 100*2
+end
+
+local function isTelemetryActive()
+	return getValue(200) > 0
+end
+-- Returns the received telemetry value from Taranis. 
+--If the telemetry link is down it returns -- instead of 0
+function getTaranisValueActive(key)
+	if isTelemetryActive() == false
+	then
+		return "--"
+	end
+	return getValue(key)
+end
+
+-- Reads and caches telemetry values from Taranis. If the 
+-- telemetry link is down, it returns the cached value insted of 0
+function getTaranisValueCached(key)
+	local value = getValue(key)
+	if value > 0 or isTelemetryActive()
+	then
+		cachedValues[key] = value
+	end
+	value = cachedValues[key]
+	if value == nil then
+		value = 0
+	end
+	return value
 end
 
 local function run_func()
