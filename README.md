@@ -7,30 +7,53 @@ It's based on the official 1.3 version.
 
 Here goes the version 0.1 of my telemetry script for Taranis X9D for APM/PixHawk Flight Controllers.
 
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/TelemetryScreen.png)
+
 The interface between the APM/PixHawk and the FrSky X series receiver is a small Teensy 3.1 board running a custom protocol translator from Mavlink to SPort telemetry.
 
 Almost all the parameters on the normal telemetry screens of the Taranis X9D are correct, with some exceptions (RPM and T2), that combine multiple values on a single field.
 
 Cell ( Voltage of Cell=Cells/(Number of cells). [V]) 
+
 Cells ( Voltage from LiPo [V] )
+
 A2 ( HDOP value * 25 - 8 bit resolution)
+
 A3 ( Roll angle from -Pi to +Pi radians, converted to a value between 0 and 1024)
+
 A4 ( Pitch angle from -Pi/2 to +Pi/2 radians, converted to a value between 0 and 1024)
+
 Alt ( Altitude from baro. [m] )
+
 GAlt ( Altitude from GPS [m])
+
 HDG ( Compass heading [deg]) v
+
 Rpm ( Throttle when ARMED [%] *100 + % battery remaining as reported by Mavlink)
+
 VSpd ( Vertical speed [m/s] )
+
 Speed ( Ground speed from GPS, [km/h] )
+
 T1 ( GPS status = ap_sat_visible*10) + ap_fixtype )
-T2 ( Armed Status and Mavlink Messages :- 16 bit value: bit 1: armed - bit 2-5: severity +1 (0 means no message - bit 6-15: number representing a specific text)
+
+T2 ( Armed Status and Mavlink Messages :- 16 bit value: bit 1: armed - bit 2-5: severity +1 (0 means no message - bit 6-15: 
+number representing a specific text)
+
 Vfas ( same as Cells )
+
 Longitud ( Longitud )
+
 Latitud ( Latitud )
+
 Dist ( Will be calculated by FrSky Taranis as the distance from first received lat/long = Home Position )
+
 Fuel ( Current Flight Mode reported by Mavlink )
+
 AccX ( X Axis average vibration m/s?)
+
 AccY ( Y Axis average vibration m/s?)
+
 AccZ ( Z Axis average vibration m/s?)
 
 This telemetry screen tries to report the data received in a easy way. 
@@ -44,6 +67,9 @@ I use a two switch combination (SWE and SWF) to change flight modes, that gives 
 I could not find a way to have the Flight Controller report the settings for some parameters, like which 6 Flight Modes are defined so the script must be updated with the Flight Mode Numbers that correspond to each Logical Switch.
 
 But the screen deserves some explanation, so here goes:
+
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/TelemetryScreen_with_labels.png)
 
 A-Current Flight Mode Active as reported by the Flight Controller. If blinking the vehicle is not Armed.
 
