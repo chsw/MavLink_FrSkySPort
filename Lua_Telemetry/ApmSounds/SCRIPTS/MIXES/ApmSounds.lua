@@ -7,6 +7,10 @@ local received_telemetry = false
 local first_telemetry = -1
 
 function playApmMessage(message)
+	if message.soundfile == nil
+	then
+		return
+	end
 	local soundfile_base = "/SOUNDS/en/"
 	playFile(soundfile_base  .. message.soundfile)
 end
