@@ -267,6 +267,7 @@ void parseStatusText(int32_t severity, String text)
 
   // efk_check.pde
   else if(text == "EKF variance")                                          textId = 31;
+  else if(text == "DCM bad heading")                                       textId = 125;
 
   // events.pde
   else if(text == "Low Battery!")                                          textId = 32;
@@ -395,7 +396,7 @@ void parseStatusText(int32_t severity, String text)
   else if(text.startsWith("ArduPlane V"))                                  textId = 0;
   else if(text.startsWith("PX4: "))                                        textId = 0;
 
-  // Last used id: 124
+  // Last used id: 125
   // Unknown text (textId = 1023)
   else                                                                     textId = 1023;
     ap_status_text_id = textId;
