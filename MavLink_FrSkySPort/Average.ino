@@ -210,11 +210,11 @@ void parseStatusText(int32_t severity, String text)
   // Texts with textId = 0 will be ignored
 
   // motors.pde
-       if(text == "ARMING MOTORS")                                         textId = 0;
+       if(text == "ARMING MOTORS")                                         textId = 1;
   else if(text == "PreArm: RC not calibrated")                             textId = 2;
-  else if(text == "PreArm: Baro not healthy")                              textId = 3;
+  else if(text.startsWith("PreArm: Baro not healthy"))                     textId = 3;
   else if(text == "PreArm: Alt disparity")                                 textId = 4;
-  else if(text == "PreArm: Compass not healthy")                           textId = 5;
+  else if(text.startsWith("PreArm: Compass not healthy"))                  textId = 5;
   else if(text == "PreArm: Compass not calibrated")                        textId = 6;
   else if(text == "PreArm: Compass offsets too high")                      textId = 7;
   else if(text == "PreArm: Check mag field")                               textId = 8;
@@ -229,16 +229,30 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "PreArm: Need 3D Fix")                                   textId = 17;
   else if(text == "PreArm: Bad Velocity")                                  textId = 18;
   else if(text == "PreArm: High GPS HDOP")                                 textId = 19;
+  else if(text == "PreArm: Accels inconsistent")                           textId = 111;
+  else if(text == "PreArm: Accels not healthy")                            textId = 112;
+  else if(text == "PreArm: Bad GPS Pos")                                   textId = 113;
+  else if(text == "PreArm: Battery failsafe on.")                          textId = 114;
+  else if(text == "PreArm: compasses inconsistent")                        textId = 115;
+  else if(text == "PreArm: Gyro cal failed")                               textId = 116;
+  else if(text == "PreArm: Gyros inconsistent")                            textId = 117;
+  else if(text == "PreArm: Gyros not healthy")                             textId = 118;
+  else if(text == "PreArm: Radio failsafe on.")                            textId = 119;
   else if(text == "Arm: Alt disparity")                                    textId = 20;
   else if(text == "Arm: Thr below FS")                                     textId = 21;
   else if(text == "Arm: Leaning")                                          textId = 22;
   else if(text == "Arm: Safety Switch")                                    textId = 23;
-  else if(text == "DISARMING MOTORS")                                      textId = 0;
+  else if(text == "Arm: Mode not armable")                                 textId = 100;
+  else if(text == "Arm: Rotor not spinning")                               textId = 101;
+  else if(text == "Arm: Thr too high")                                     textId = 102;
+  else if(text == "DISARMING MOTORS")                                      textId = 89;
+  else if(text == "Throttle armed!")                                       textId = 120;
+  else if(text == "Throttle disarmed!")                                    textId = 121;
   
   // plane/copter sensors.pde
-  else if(text == "Calibrating barometer")                                 textId = 0;
-  else if(text == "barometer calibration complete")                        textId = 0;
-  else if(text == "zero airspeed calibrated")                              textId = 0;
+  else if(text == "Calibrating barometer")                                 textId = 90;
+  else if(text == "barometer calibration complete")                        textId = 91;
+  else if(text == "zero airspeed calibrated")                              textId = 92;
   
   // control_autotune.pde
   else if(text == "AutoTune: Started")                                     textId = 24;
@@ -253,6 +267,7 @@ void parseStatusText(int32_t severity, String text)
 
   // efk_check.pde
   else if(text == "EKF variance")                                          textId = 31;
+  else if(text == "DCM bad heading")                                       textId = 125;
 
   // events.pde
   else if(text == "Low Battery!")                                          textId = 32;
@@ -279,7 +294,7 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "error setting rally point")                             textId = 47;
   else if(text == "bad rally point index")                                 textId = 48;
   else if(text == "failed to set rally point")                             textId = 49;
-  else if(text == "Initialising APM...")                                   textId = 0;
+  else if(text == "Initialising APM...")                                   textId = 93;
   
   // copter/plane Log.pde
   else if(text.startsWith("Erasing logs"))                                 textId = 50;
@@ -292,13 +307,14 @@ void parseStatusText(int32_t severity, String text)
   
   // plane/copter system.pde
   else if(text == "No dataflash inserted")                                 textId = 55;
+  else if(text == "No dataflash card inserted")                            textId = 55; // Duplicate
   else if(text == "ERASING LOGS")                                          textId = 56;
   else if(text == "Waiting for first HIL_STATE message")                   textId = 57;
-  else if(text == "GROUND START")                                          textId = 0;
-  else if(text == "<startup_ground> GROUND START")                         textId = 0;
-  else if(text == "<startup_ground> With Delay")                           textId = 0;
+  else if(text == "GROUND START")                                          textId = 94;
+  else if(text == "<startup_ground> GROUND START")                         textId = 95;
+  else if(text == "<startup_ground> With Delay")                           textId = 96;
   else if(text.endsWith("Ready to FLY."))                                  textId = 61;
-  else if(text == "Beginning INS calibration; do not move plane")          textId = 0;
+  else if(text == "Beginning INS calibration; do not move plane")          textId = 97;
   else if(text == "NO airspeed")                                           textId = 62;
   
   // AntennaTracker GCS_Mavnlink.pde
@@ -306,12 +322,13 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "new HOME received")                                     textId = 60;
 
   // AntennaTracker system.pde
-  else if(text.endsWith("Ready to track.  "))                              textId = 0;
-  else if(text == "Beginning INS calibration; do not move tracker")        textId = 0;
+  else if(text.endsWith("Ready to track.  "))                              textId = 98;
+  else if(text == "Beginning INS calibration; do not move tracker")        textId = 99;
   
   // Arduplane.pde
   else if(text == "Disable fence failed (autodisable)")                    textId = 63;
   else if(text == "Fence disabled (autodisable)")                          textId = 64;
+  else if(text.startsWith("FBWA tdrag mode"))                              textId = 110;
   
   // Arduplane attitude.pde
   else if(text == "Demo Servos!")                                          textId = 65;
@@ -339,22 +356,47 @@ void parseStatusText(int32_t severity, String text)
   else if(text == "verify_nav: Invalid or no current Nav cmd")             textId = 79;
   else if(text == "verify_conditon: Invalid or no current Condition cmd")  textId = 80;
   else if(text == "Enable fence failed (cannot autoenable")                textId = 81;
+  else if(text == "verify_conditon: Unsupported command")                  textId = 124;
   
   // Arduplane geofence.pde
   else if(text == "geo-fence loaded")                                      textId = 82;
   else if(text == "geo-fence setup error")                                 textId = 83;
   else if(text == "geo-fence OK")                                          textId = 84;
   else if(text == "geo-fence triggered")                                   textId = 85;
+
+  // Rover steering.pde
+  else if(text == "AUTO triggered off")                                    textId = 103;
+  else if(text == "Triggered AUTO with pin")                               textId = 122;
+
+  // Rover system.pde
+  else if(text == "Beginning INS calibration; do not move vehicle")        textId = 104;
+  else if(text == "Warming up ADC...")                                     textId = 123;
+
+  // Arducopter esc_calibraton.pde
+  else if(text == "ESC Cal: auto calibration")                             textId = 105;
+  else if(text == "ESC Cal: passing pilot thr to ESCs")                    textId = 106;
+  else if(text == "ESC Cal: push safety switch")                           textId = 107;
+  else if(text == "ESC Cal: restart board")                                textId = 108;
+
+  // Arduplane takeoff.pde
+  else if(text == "FBWA tdrag off")                                        textId = 109;
+
+  // Arducopter commands_logic.pde
+  else if(text.startsWith("Reached Command #"))                            textId = 88;
   
   // Libraries GCS_Common.cpp
   else if(text == "flight plan update rejected")                           textId = 86;
   else if(text == "flight plan received")                                  textId = 87;
+
+  // Gcs_Mavlink.pde
+  else if(text.startsWith("Frame: "))                                      textId = 0;
   
   // System version (received when connecting Mission planner)
   else if(text.startsWith("ArduCopter V"))                                 textId = 0;
   else if(text.startsWith("ArduPlane V"))                                  textId = 0;
   else if(text.startsWith("PX4: "))                                        textId = 0;
 
+  // Last used id: 125
   // Unknown text (textId = 1023)
   else                                                                     textId = 1023;
     ap_status_text_id = textId;
