@@ -70,130 +70,184 @@ local function cloneStatusMessage()
 end
 
 local function decodeApmStatusText(textnr)
-	
-	if     textnr == 1  then return {enabled=false, silent=false, text="ARMING MOTORS", soundfile=""}
-	elseif textnr == 2  then return {enabled=true, silent=false, text="PreArm: RC not calibrated", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 3  then return {enabled=true, silent=false, text="PreArm: Baro not healthy", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 4  then return {enabled=true, silent=false, text="PreArm: Alt disparity", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 5  then return {enabled=true, silent=false, text="PreArm: Compass not healthy", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 6  then return {enabled=true, silent=false, text="PreArm: Compass not calibrated", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 7  then return {enabled=true, silent=false, text="PreArm: Compass offsets too high", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 8  then return {enabled=true, silent=false, text="PreArm: Check mag field", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 9  then return {enabled=true, silent=false, text="PreArm: INS not calibrated", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 10 then return {enabled=true, silent=false, text="PreArm: INS not healthy", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 11 then return {enabled=true, silent=false, text="PreArm: Check Board Voltage", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 12 then return {enabled=true, silent=false, text="PreArm: Ch7&Ch8 Opt cannot be same", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 13 then return {enabled=true, silent=false, text="PreArm: Check FS_THR_VALUE", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 14 then return {enabled=true, silent=false, text="PreArm: Check ANGLE_MAX", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 15 then return {enabled=true, silent=false, text="PreArm: ACRO_BAL_ROLL/PITCH", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 16 then return {enabled=true, silent=false, text="PreArm: GPS Glitch", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 17 then return {enabled=true, silent=false, text="PreArm: Need 3D Fix", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 18 then return {enabled=true, silent=false, text="PreArm: Bad Velocity", soundfile="apm_failed_prearm.wav"}
-	elseif textnr == 19 then return {enabled=true, silent=false, text="PreArm: High GPS HDOP", soundfile="apm_failed_prearm.wav"}
-	
-	elseif textnr == 20 then return {enabled=true, silent=false, text="Arm: Alt disparity", soundfile="apm_failed_arm.wav"}
-	elseif textnr == 21 then return {enabled=true, silent=false, text="Arm: Thr below FS", soundfile="apm_failed_arm.wav"}
-	elseif textnr == 22 then return {enabled=true, silent=false, text="Arm: Leaning", soundfile="apm_failed_arm.wav"}
-	elseif textnr == 23 then return {enabled=true, silent=false, text="Arm: Safety Switch", soundfile="apm_failed_arm.wav"}
-	elseif textnr == 89 then return {enabled=false, silent=false, text="DISARMING MOTORS", soundfile=""}
+	-- Default disabled status
+	local ret = {enabled=false, silent=false, text="", soundfile=strDefault}
 
-	elseif textnr == 90 then return {enabled=false, silent=false, text="Calibrating barometer", soundfile=""}
-	elseif textnr == 91 then return {enabled=false, silent=false, text="barometer calibration complete", soundfile=""}
-	elseif textnr == 92 then return {enabled=false, silent=false, text="zero airspeed calibrated", soundfile=""}
-	
-	elseif textnr == 24 then return {enabled=true, silent=false, text="AutoTune: Started", soundfile="apm_autotune_start.wav"}
-	elseif textnr == 25 then return {enabled=true, silent=false, text="AutoTune: Stopped", soundfile="apm_autotune_stop.wav"}
-	elseif textnr == 26 then return {enabled=true, silent=false, text="AutoTune: Success", soundfile="apm_autotune_done.wav"}
-	elseif textnr == 27 then return {enabled=true, silent=false, text="AutoTune: Failed", soundfile="apm_autotune_fail.wav"}
-
-	elseif textnr == 28 then return {enabled=true, silent=false, text="Crash: Disarming", soundfile=""}
-	elseif textnr == 29 then return {enabled=true, silent=false, text="Parachute: Released!", soundfile=""}
-	elseif textnr == 30 then return {enabled=true, silent=false, text="Parachute: Too Low", soundfile=""}
-	
-	elseif textnr == 31 then return {enabled=true, silent=false, text="EKF variance", soundfile=""}
-	
-	elseif textnr == 32 then return {enabled=true, silent=false, text="Low Battery!", soundfile=""}
-	elseif textnr == 33 then return {enabled=true, silent=false, text="Lost GPS!", soundfile=""}
-	
-	elseif textnr == 34 then return {enabled=true, silent=false, text="Trim saved", soundfile=""}
-	-- Compassmot.pde
-	elseif textnr ==  35 then return {enabled=true, silent=false, text="compass disabled\n", soundfile=""}
-	elseif textnr ==  36 then return {enabled=true, silent=false, text="check compass", soundfile=""}
-	elseif textnr ==  37 then return {enabled=true, silent=false, text="RC not calibrated", soundfile=""}
-	elseif textnr ==  38 then return {enabled=true, silent=false, text="thr not zero", soundfile=""}
-	elseif textnr ==  39 then return {enabled=true, silent=false, text="Not landed", soundfile=""}
-	elseif textnr ==  40 then return {enabled=true, silent=false, text="STARTING CALIBRATION", soundfile=""}
-	elseif textnr ==  41 then return {enabled=true, silent=false, text="CURRENT", soundfile=""}
-	elseif textnr ==  42 then return {enabled=true, silent=false, text="THROTTLE", soundfile=""}
-	elseif textnr ==  43 then return {enabled=true, silent=false, text="Calibration Successful!", soundfile=""}
-	elseif textnr ==  44 then return {enabled=true, silent=false, text="Failed!", soundfile=""}
-  
-	elseif textnr ==  45 then return {enabled=true, silent=false, text="bad rally point message ID", soundfile=""}
-	elseif textnr ==  46 then return {enabled=true, silent=false, text="bad rally point message count", soundfile=""}
-	elseif textnr ==  47 then return {enabled=true, silent=false, text="error setting rally point", soundfile=""}
-	elseif textnr ==  48 then return {enabled=true, silent=false, text="bad rally point index", soundfile=""}
-	elseif textnr ==  49 then return {enabled=true, silent=false, text="failed to set rally point", soundfile=""}
-	elseif textnr ==  93 then return {enabled=false, silent=true, text="Initialising APM...", soundfile=""}
-  
-	elseif textnr ==  50 then return {enabled=true, silent=false, text="Erasing logs", soundfile=""}
-	elseif textnr ==  51 then return {enabled=true, silent=false, text="Log erase complete", soundfile=""}
-  
-	elseif textnr ==  52 then return {enabled=true, silent=false, text="Motor Test: RC not calibrated", soundfile=""}
-	elseif textnr ==  53 then return {enabled=true, silent=false, text="Motor Test: vehicle not landed", soundfile=""}
-	elseif textnr ==  54 then return {enabled=true, silent=false, text="Motor Test: Safety Switch", soundfile=""}
-  
-	elseif textnr ==  55 then return {enabled=true, silent=false, text="No dataflash inserted", soundfile=""}
-	elseif textnr ==  56 then return {enabled=true, silent=false, text="ERASING LOGS", soundfile=""}
-	elseif textnr ==  57 then return {enabled=true, silent=false, text="Waiting for first HIL_STATE message", soundfile=""}
-	elseif textnr ==  94 then return {enabled=false, silent=false, text="GROUND START", soundfile=""}
-	elseif textnr ==  95 then return {enabled=true, silent=false, text="<startup_ground> GROUND START", soundfile=""}
-	elseif textnr ==  96 then return {enabled=true, silent=false, text="<startup_ground> With Delay", soundfile=""}
-	elseif textnr ==  61 then return {enabled=true, silent=false, text="Ready to FLY.", soundfile=""}
-	elseif textnr ==  97 then return {enabled=true, silent=false, text="Beginning INS calibration; do not move plane", soundfile=""}
-	elseif textnr ==  62 then return {enabled=true, silent=false, text="NO airspeed", soundfile=""}
-  
-	elseif textnr ==  59 then return {enabled=true, silent=false, text="command received: ", soundfile=""}
-	elseif textnr ==  60 then return {enabled=true, silent=false, text="new HOME received", soundfile=""}
-	
-	elseif textnr ==  98 then return {enabled=true, silent=false, text="Ready to track.", soundfile=""}
-	elseif textnr ==  99 then return {enabled=true, silent=false, text="Beginning INS calibration; do not move tracker", soundfile=""}
-
-	elseif textnr ==  63 then return {enabled=true, silent=false, text="Disable fence failed (autodisable)", soundfile=""}
-	elseif textnr ==  64 then return {enabled=true, silent=false, text="Fence disabled (autodisable)", soundfile=""}
-  
-	elseif textnr ==  65 then return {enabled=true, silent=false, text="Demo Servos!", soundfile=""}
-  
-	elseif textnr ==  66 then return {enabled=true, silent=false, text="Resetting prev_WP", soundfile=""}
-	elseif textnr ==  67 then return {enabled=true, silent=false, text="init home", soundfile=""}
-	elseif textnr ==  68 then return {enabled=true, silent=false, text="Fence enabled. (autoenabled)", soundfile=""}
-	elseif textnr ==  69 then return {enabled=true, silent=false, text="verify_nav: LOITER time complete", soundfile=""}
-	elseif textnr ==  70 then return {enabled=true, silent=false, text="verify_nav: LOITER orbits complete", soundfile=""}
-	elseif textnr ==  71 then return {enabled=true, silent=false, text="Reached home", soundfile=""}
-  
-	elseif textnr ==  72 then return {enabled=true, silent=false, text="Failsafe - Short event on, ", soundfile=""}
-	elseif textnr ==  73 then return {enabled=true, silent=false, text="Failsafe - Long event on, ", soundfile=""}
-	elseif textnr ==  74 then return {enabled=true, silent=false, text="No GCS heartbeat.", soundfile=""}
-	elseif textnr ==  75 then return {enabled=true, silent=false, text="Failsafe - Short event off", soundfile=""}
-
-	elseif textnr ==  76 then return {enabled=true, silent=false, text="command received: ", soundfile=""}
-	elseif textnr ==  77 then return {enabled=true, silent=false, text="fencing must be disabled", soundfile=""}
-	elseif textnr ==  78 then return {enabled=true, silent=false, text="bad fence point", soundfile=""}
-  
-	elseif textnr ==  79 then return {enabled=true, silent=false, text="verify_nav: Invalid or no current Nav cmd", soundfile=""}
-	elseif textnr ==  80 then return {enabled=true, silent=false, text="verify_conditon: Invalid or no current Condition cmd", soundfile=""}
-	elseif textnr ==  81 then return {enabled=true, silent=false, text="Enable fence failed (cannot autoenable", soundfile=""}
- 
-	elseif textnr ==  82 then return {enabled=true, silent=false, text="geo-fence loaded", soundfile=""}
-	elseif textnr ==  83 then return {enabled=true, silent=false, text="geo-fence setup error", soundfile=""}
-	elseif textnr ==  84 then return {enabled=true, silent=false, text="geo-fence OK", soundfile=""}
-	elseif textnr ==  85 then return {enabled=true, silent=false, text="geo-fence triggered", soundfile=""}
-  
-	elseif textnr ==  88 then return {enabled=true, silent=false, text="Reached Command", soundfile="apm_cmd_reached.wav"}
-  
-	elseif textnr ==  86 then return {enabled=true, silent=false, text="flight plan update rejected", soundfile="apm_flightplan_rej.wav"}
-	elseif textnr ==  87 then return {enabled=true, silent=false, text="flight plan received", soundfile="apm_flightplan_upd.wav"}
+	-- Send nothing for disabled ids
+	if textnr == 1  -- "ARMING MOTORS"
+	or textnr == 89 -- "DISARMING MOTORS"
+	or textnr == 90 -- "Calibrating barometer"
+	or textnr == 91 -- "barometer calibration complete"
+	or textnr == 92 -- "zero airspeed calibrated"
+	or textnr == 94 -- "GROUND START"
+	or textnr == 93 -- "Initialising APM..."
+	or textnr == 95 -- "<startup_ground> GROUND START"
+	or textnr == 96 -- "<startup_ground> With Delay"
+	then
+		return ret
 	end
-	return nil
+	-- Set status-message as enabled 
+	ret.enabled = true
+	-- Check for prearm failures
+	if textnr == 2  then ret.text="PreArm: RC not calibrated"
+	elseif textnr == 3  then ret.text="PreArm: Baro not healthy"
+	elseif textnr == 4  then ret.text="PreArm: Alt disparity"
+	elseif textnr == 5  then ret.text="PreArm: Compass not healthy"
+	elseif textnr == 6  then ret.text="PreArm: Compass not calibrated"
+	elseif textnr == 7  then ret.text="PreArm: Compass offsets too high"
+	elseif textnr == 8  then ret.text="PreArm: Check mag field"
+	elseif textnr == 9  then ret.text="PreArm: INS not calibrated"
+	elseif textnr == 10 then ret.text="PreArm: INS not healthy"
+	elseif textnr == 11 then ret.text="PreArm: Check Board Voltage"
+	elseif textnr == 12 then ret.text="PreArm: Ch7&Ch8 Opt cannot be same"
+	elseif textnr == 13 then ret.text="PreArm: Check FS_THR_VALUE"
+	elseif textnr == 14 then ret.text="PreArm: Check ANGLE_MAX"
+	elseif textnr == 15 then ret.text="PreArm: ACRO_BAL_ROLL/PITCH"
+	elseif textnr == 16 then ret.text="PreArm: GPS Glitch"
+	elseif textnr == 17 then ret.text="PreArm: Need 3D Fix"
+	elseif textnr == 18 then ret.text="PreArm: Bad Velocity"
+	elseif textnr == 19 then ret.text="PreArm: High GPS HDOP"
+	elseif textnr == 111 then ret.text="PreArm: Accels inconsistent"
+    elseif textnr == 112 then ret.text="PreArm: Accels not healthy"
+    elseif textnr == 113 then ret.text="PreArm: Bad GPS Pos"
+    elseif textnr == 114 then ret.text="PreArm: Battery failsafe on."
+    elseif textnr == 115 then ret.text="PreArm: compasses inconsistent"
+    elseif textnr == 116 then ret.text="PreArm: Gyro cal failed"
+    elseif textnr == 117 then ret.text="PreArm: Gyros inconsistent"
+    elseif textnr == 118 then ret.text="PreArm: Gyros not healthy"
+    elseif textnr == 119 then ret.text="PreArm: Radio failsafe on."
+	end
+	-- If any prearmfailure was found - set the default soundfile and return
+	if ret.text ~= "" and ret.soundfile == nil then
+		ret.soundfile = "apm_failed_prearm.wav"
+		return ret
+	end 
+	
+	-- Check for arm failures
+	if textnr == 20 then ret.text="Arm: Alt disparity"; ret.soundfile=strArm
+	elseif textnr == 21 then ret.text="Arm: Thr below FS"; ret.soundfile=strArm
+	elseif textnr == 22 then ret.text="Arm: Leaning"; ret.soundfile=strArm
+	elseif textnr == 23 then ret.text="Arm: Safety Switch"; ret.soundfile=strArm
+	elseif textnr == 100 then ret.text="Arm: Mode not armable"; ret.soundfile=strArm
+    elseif textnr == 101 then ret.text="Arm: Rotor not spinning"; ret.soundfile=strArm
+    elseif textnr == 102 then ret.text="Arm: Thr too high"; ret.soundfile=strArm
+	end
+	-- If any armfailure was found - set the default soundfile and return
+	if ret.text ~= "" and ret.soundfile == nil then
+		ret.soundfile = "apm_failed_arm.wav"
+		return ret
+	end 
+	
+	-- Check all other statuses
+    if textnr == 120 then ret.text="Throttle armed!"
+    elseif textnr == 121 then ret.text="Throttle disarmed!"
+  
+	elseif textnr == 24 then ret.text="AutoTune: Started"; ret.soundfile="apm_autotune_start.wav"
+	elseif textnr == 25 then ret.text="AutoTune: Stopped"; ret.soundfile="apm_autotune_stop.wav"
+	elseif textnr == 26 then ret.text="AutoTune: Success"; ret.soundfile="apm_autotune_done.wav"
+	elseif textnr == 27 then ret.text="AutoTune: Failed"; ret.soundfile="apm_autotune_fail.wav"
+
+	elseif textnr == 28 then ret.text="Crash: Disarming"
+	elseif textnr == 29 then ret.text="Parachute: Released!"
+	elseif textnr == 30 then ret.text="Parachute: Too Low"
+	
+	elseif textnr == 31 then ret.text="EKF variance"
+	elseif textnr == 125 then ret.text="DCM bad heading"
+	
+	elseif textnr == 32 then ret.text="Low Battery!"
+	elseif textnr == 33 then ret.text="Lost GPS!"
+	
+	elseif textnr == 34 then ret.text="Trim saved"
+	-- Compassmot.pde
+	elseif textnr ==  35 then ret.text="compass disabled"
+	elseif textnr ==  36 then ret.text="check compass"
+	elseif textnr ==  37 then ret.text="RC not calibrated"
+	elseif textnr ==  38 then ret.text="thr not zero"
+	elseif textnr ==  39 then ret.text="Not landed"
+	elseif textnr ==  40 then ret.text="STARTING CALIBRATION"
+	elseif textnr ==  41 then ret.text="CURRENT"
+	elseif textnr ==  42 then ret.text="THROTTLE"
+	elseif textnr ==  43 then ret.text="Calibration Successful!"
+	elseif textnr ==  44 then ret.text="Failed!"
+  
+	elseif textnr ==  45 then ret.text="bad rally point message ID"
+	elseif textnr ==  46 then ret.text="bad rally point message count"
+	elseif textnr ==  47 then ret.text="error setting rally point"
+	elseif textnr ==  48 then ret.text="bad rally point index"
+	elseif textnr ==  49 then ret.text="failed to set rally point"
+  
+	elseif textnr ==  50 then ret.text="Erasing logs"
+	elseif textnr ==  51 then ret.text="Log erase complete"
+
+	elseif textnr ==  52 then ret.text="Motor Test: RC not calibrated"
+	elseif textnr ==  53 then ret.text="Motor Test: vehicle not landed"
+	elseif textnr ==  54 then ret.text="Motor Test: Safety Switch"
+
+	elseif textnr ==  55 then ret.text="No dataflash inserted"
+	elseif textnr ==  56 then ret.text="ERASING LOGS"
+	elseif textnr ==  57 then ret.text="Waiting for first HIL_STATE message"
+	elseif textnr ==  61 then ret.text="Ready to FLY."
+	elseif textnr ==  97 then ret.text="Beginning INS calibration; do not move plane"
+	elseif textnr ==  62 then ret.text="NO airspeed"
+  
+	elseif textnr ==  59 then ret.text="command received: "
+	elseif textnr ==  60 then ret.text="new HOME received"
+	elseif textnr ==  98 then ret.text="Ready to track."
+	elseif textnr ==  99 then ret.text="Beginning INS calibration; do not move tracker"
+
+	elseif textnr ==  63 then ret.text="Disable fence failed (autodisable)"
+	elseif textnr ==  64 then ret.text="Fence disabled (autodisable)"
+	elseif textnr ==  110 then ret.text="FBWA tdrag mode"
+  
+	elseif textnr ==  65 then ret.text="Demo Servos!"
+
+	elseif textnr ==  66 then ret.text="Resetting prev_WP"
+	elseif textnr ==  67 then ret.text="init home"
+	elseif textnr ==  68 then ret.text="Fence enabled. (autoenabled)"
+	elseif textnr ==  69 then ret.text="verify_nav: LOITER time complete"
+	elseif textnr ==  70 then ret.text="verify_nav: LOITER orbits complete"
+	elseif textnr ==  71 then ret.text="Reached home"
+
+	elseif textnr ==  72 then ret.text="Failsafe - Short event on, "
+	elseif textnr ==  73 then ret.text="Failsafe - Long event on, "
+	elseif textnr ==  74 then ret.text="No GCS heartbeat."
+	elseif textnr ==  75 then ret.text="Failsafe - Short event off"
+
+	elseif textnr ==  76 then ret.text="command received: "
+	elseif textnr ==  77 then ret.text="fencing must be disabled"
+	elseif textnr ==  78 then ret.text="bad fence point"
+
+	elseif textnr ==  79 then ret.text="verify_nav: Invalid or no current Nav cmd"
+	elseif textnr ==  80 then ret.text="verify_conditon: Invalid or no current Condition cmd"
+	elseif textnr ==  81 then ret.text="Enable fence failed (cannot autoenable"
+ 	elseif textnr ==  124 then ret.text="verify_conditon: Unsupported command"
+
+	elseif textnr ==  82 then ret.text="geo-fence loaded"
+	elseif textnr ==  83 then ret.text="geo-fence setup error"
+	elseif textnr ==  84 then ret.text="geo-fence OK"
+	elseif textnr ==  85 then ret.text="geo-fence triggered"
+
+    elseif textnr == 103 then ret.text="AUTO triggered off"
+    elseif textnr == 122 then ret.text="Triggered AUTO with pin"
+
+    elseif textnr == 104 then ret.text="Beginning INS calibration; do not move vehicle"
+    elseif textnr == 123 then ret.text="Warming up ADC..."
+
+    elseif textnr == 105 then ret.text="ESC Cal: auto calibration"
+    elseif textnr == 106 then ret.text="ESC Cal: passing pilot thr to ESCs"
+    elseif textnr == 107 then ret.text="ESC Cal: push safety switch"
+    elseif textnr == 108 then ret.text="ESC Cal: restart board"
+
+	elseif textnr == 109 then ret.text="FBWA tdrag off"
+
+	elseif textnr ==  88 then ret.text="Reached Command"; ret.soundfile="apm_cmd_reached.wav"
+
+	elseif textnr ==  86 then ret.text="flight plan update rejected"; ret.soundfile="apm_flightplan_rej.wav"
+	elseif textnr ==  87 then ret.text="flight plan received"; ret.soundfile="apm_flightplan_upd.wav"
+	else
+		return nil;
+	end
+	return ret
 end
 
 local function newApmStatus(severity, textid)
