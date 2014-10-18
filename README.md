@@ -127,3 +127,49 @@ Y-Heading to home (Heading to the point the Taranis received a good satellite fi
 
 When changing flight modes the radio says Flight Mode X engaged when the switch is moved and Flight Mode X active when the Flight Controller reports it. If there is a mismatch or the Flight Controller doesn't not report the Flight Mode as set by the switches you'll be notified.
 
+
+
+
+Radio setup
+
+The radio must be configured to run Lua Scripts, so in this image I show the options for the firmware:
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/Radio_Setup_6.png)
+
+
+Your radio setup can be different, because on "historic" reasons I had to setup the channel order as TAER, but yours are sure to be different, so please take that is consideration.
+
+A few more details required to have things going smoothly. The Taranis is a great radio but I compare it with a blank sheet of paper where one must be able to define what its needed.
+
+The basic settings I use on a model that can use this script are pictured below. Please note that you can have more channels and options configured but these are the minimum to operate correctly:
+
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/Radio_Setup_2.png)
+
+
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/Radio_Setup_3.png)
+
+
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/Radio_Setup_4.png)
+
+
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/Radio_Setup_5.png)
+
+
+
+Nothing else is needed, because the script takes care of all the warnings and notifications, so if you are used to use SF to have audio notifications, in this case:
+
+
+
+
+![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/Radio_Setup_1.png)
+
+
+
+
+
+
+
