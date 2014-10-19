@@ -2,33 +2,45 @@
 local capacity_max = 4000
 
 -- Don't change these
-local API_LEVEL_NEED = 3
-local function init()
+local API_LEVEL_MAJOR = 2
+local API_LEVEL_MINOR = 1
 
+local ApmTelem = nil
+local function init()
+    if getApmTelem ~= nil
+	then
+		ApmTelem = getApmTelem()
+	end
 end
 
 local function background()
 
 end
 
+local function checkVersionVersion()
+  if ApmTelem == nil then
+	lcd.drawText(20, 25, "Please install ApmTelem.lua", 0)
+	lcd.drawText(20, 35, "on the \"Custom Scripts\" page!", 0)
+  elseif ApmTelem.VER_MAJOR > API_LEVEL_MAJOR then
+  	lcd.drawText(10, 20, "This telemetry screen is to old for", 0)
+	lcd.drawText(10, 30, "the installed version of ApmTelem.lua", 0)
+	lcd.drawText(10, 40, "Please upgrade", 0)
+  elseif ApmTelem.VER_MAJOR < API_LEVEL_MAJOR or ApmTelem.VER_MINOR < API_LEVEL_MINOR then
+  	lcd.drawText(20, 25, "Please upgrade ApmTelem.lua", 0)
+	lcd.drawText(20, 35, "on the \"Custom Scripts\" page!", 0)
+  else
+	return 0
+  end
+  return 1
+end
 
 local function run(event)
-  
-  if ApmTelem_API_VER == nil or ApmTelem_API_VER < API_LEVEL_NEED
-  then
-	if ApmTelem_API_VER == nil 
-	then
-		lcd.drawText(20, 20, "Please install mixerscript", 0)
-	else
-		lcd.drawText(20, 20, "Wrong version. Please update", 0)
-	end
-	lcd.drawText(20, 30, "ApmTelem.lua", 0)
-    lcd.drawText(20, 40, "on the \"Custom Scripts\" page!", 0)
-	return
+  if checkVersionVersion() > 0 then
+    return
   end
-
+  
   -- Fetch current status
-  local status = getApmActiveStatus()
+  local status = ApmTelem.getActiveStatus()
   -- If we have a status - display the message
   if status ~= nil
   then
@@ -36,14 +48,14 @@ local function run(event)
   -- Ohterwise show the battery gauge
   else
 	  -- Battery gauge
-	  local telem_mah = getTaranisValueCached(218)
+	  local telem_mah = ApmTelem.getValueCached(218)
 	  lcd.drawGauge(1, 55, 90, 8, capacity_max - telem_mah, capacity_max)
 	  lcd.drawText(90+4, 55, telem_mah.."mAh", 0)
   end
  
 -- Model name && status
   lcd.drawText(2,1, model.getInfo().name, MIDSIZE)
-  if getApmArmed()
+  if ApmTelem.isArmed()
   then
 	lcd.drawText(lcd.getLastPos()+3, 1, "ARMED", MIDSIZE)
   else
@@ -59,8 +71,8 @@ local function run(event)
   lcd.drawText(145, 30, getValue("altitude") .. "m", MIDSIZE)
   
  -- gps status
-  local gpsHdop = getApmGpsHdop()
-  if getApmGpsLock() >= 3.0
+  local gpsHdop = ApmTelem.getGpsHdop()
+  if ApmTelem.getGpsLock() >= 3.0
   then
 	lcd.drawPixmap(190, 1, "/SCRIPTS/BMP/gps3d.bmp")
   else
@@ -78,18 +90,18 @@ local function run(event)
   end
 
 -- Line 2
-  lcd.drawText(1, 15, getApmFlightmodeText(), 0);
+  lcd.drawText(1, 15, ApmTelem.getCurrentFlightmode(), 0);
 -- Line 3
   lcd.drawText(1, 25, "Speed: "..getValue("speed").."km/h Heading: "..getValue("heading").."@", 0)
 -- Line 4
-  lcd.drawText(1, 35, "Power: "..getTaranisValueActive(216).."V ("..getTaranisValueActive(214).."V) "..getTaranisValueActive(217).."A "..getTaranisValueActive(219).."W", 0)
+  lcd.drawText(1, 35, "Power: "..ApmTelem.getValueActive(216).."V ("..ApmTelem.getValueActive(214).."V) "..ApmTelem.getValueActive(217).."A "..ApmTelem.getValueActive(219).."W", 0)
 -- Line 5
-  lcd.drawText(1, 45, "Peaks: "..getTaranisValueCached(246).."V ("..getTaranisValueCached(244).."V) "..getTaranisValueCached(247).."A "..getTaranisValueCached(248).."W", 0)
+  lcd.drawText(1, 45, "Peaks: "..ApmTelem.getValueCached(246).."V ("..ApmTelem.getValueCached(244).."V) "..ApmTelem.getValueCached(247).."A "..ApmTelem.getValueCached(248).."W", 0)
 -- Right column:
 
 
 -- Home position
-  local relativeHeadingHome = getApmHeadingHomeRelative()
+  local relativeHeadingHome = ApmTelem.getRelativeHeadingHome()
   local integHead, fracHead = math.modf(relativeHeadingHome/22.5+.5)
   lcd.drawPixmap(190,42,"/SCRIPTS/BMP/arrow"..(integHead%16)..".bmp")
   lcd.drawText(145, 45, "To Home", 0)

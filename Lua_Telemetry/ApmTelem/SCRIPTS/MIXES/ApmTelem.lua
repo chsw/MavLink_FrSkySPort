@@ -294,7 +294,15 @@ local function clearApmStatus()
  apm_status_message.soundfile = ""
 end
 
-function getApmActiveStatus()
+local function isApmActiveStatus()
+	if apm_status_message.timestamp > 0
+	then
+		return true
+	end
+	return false
+end
+
+local function getApmActiveStatus()
 	if isApmActiveStatus() == false or apm_status_message.enabled == false 
 	then 
 		return nil
@@ -303,7 +311,7 @@ function getApmActiveStatus()
 	return returnvalue
 end
 
-function getApmActiveStatusSeverity()
+local function getApmActiveStatusSeverity()
 	if isApmActiveStatus() == false
 	then 
 		return ""
@@ -311,15 +319,9 @@ function getApmActiveStatusSeverity()
 	return decodeApmWarning(apm_status_message.severity)
 end
 
-function isApmActiveStatus()
-	if apm_status_message.timestamp > 0
-	then
-		return true
-	end
-	return false
-end
 
-function getApmFlightmodeNumber()
+
+local function getApmFlightmodeNumber()
 	return getValue(208) -- Fuel
 end
 
@@ -343,26 +345,26 @@ function getApmFlightmodeText()
   return "Unknown Flightmode"
 end
 
-function getApmGpsHdop()
+local function getApmGpsHdop()
 	return getValue(203)/10 -- A2
 end 
 
-function getApmGpsSats()
+local function getApmGpsSats()
   local telem_t1 = getValue(209) -- Temp1
   return (telem_t1 - (telem_t1%10))/10
 end
 
-function getApmGpsLock()
+local function getApmGpsLock()
   local telem_t1 = getValue(209) -- Temp1
   return  telem_t1%10
 end
 
-function getApmArmed()
+local function getApmArmed()
 	return getValue(210)%2 > 0 -- Temp2
 end
 
 -- The heading to pilot home position - relative to apm position
-function getApmHeadingHome()
+local function getApmHeadingHome()
   local pilotlat = getValue("pilot-latitude")
   local pilotlon = getValue("pilot-longitude")
   local curlat = getValue("latitude")
@@ -381,7 +383,7 @@ function getApmHeadingHome()
 end
 
 -- The heading to pilot home position relative to the current heading.
-function getApmHeadingHomeRelative()
+local function getApmHeadingHomeRelative()
 	local tmp = getApmHeadingHome() - getValue(223) -- Heading
 	return (tmp +360)%360
 end
@@ -396,7 +398,7 @@ local function isTelemetryActive()
 end
 -- Returns the received telemetry value from Taranis. 
 --If the telemetry link is down it returns -- instead of 0
-function getTaranisValueActive(key)
+local function getTaranisValueActive(key)
 	if isTelemetryActive() == false
 	then
 		return "--"
@@ -406,7 +408,7 @@ end
 
 -- Reads and caches telemetry values from Taranis. If the 
 -- telemetry link is down, it returns the cached value insted of 0
-function getTaranisValueCached(key)
+local function getTaranisValueCached(key)
 	local value = getValue(key)
 	if value > 0 or isTelemetryActive()
 	then
@@ -417,6 +419,26 @@ function getTaranisValueCached(key)
 		value = 0
 	end
 	return value
+end
+
+local initCount = 0
+
+function getApmTelem()
+	initCount = initCount+1
+	return {
+		VER_MAJOR=2,
+		VER_MINOR=1,
+		getValueCached=getTaranisValueCached,
+		getValueActive=getTaranisValueActive,
+		getGpsHdop=getApmGpsHdop,
+		getGpsLock=getApmGpsLock,
+		getGpsSatsCount=getApmGpsSats,
+		isArmed=getApmArmed,
+		getRelativeHeadingHome=getApmHeadingHomeRelative,
+		isActiveStatus=isApmActiveStatus,
+		getActiveStatus=getApmActiveStatus,
+		getCurrentFlightmode=getApmFlightmodeText
+	}
 end
 
 local function run_func()
@@ -453,6 +475,7 @@ local function run_func()
 		armd = 0
 	end	
 	return armd
+	
 end  
 
 return {init=init, run=run_func, output=outputs}
