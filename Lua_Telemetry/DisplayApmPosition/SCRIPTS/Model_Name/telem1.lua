@@ -41,7 +41,7 @@
 
 				Switches[1].FlightNumber=1 -- these correspond to the Logical Switches defined on the Radio - L1  is 1 =Stabilize
 				Switches[2].FlightNumber=3 -- these correspond to the Logical Switches defined on the Radio - L2  is 3 =Altitude Hold
-				Switches[3].FlightNumber=6 -- these correspond to the Logical Switches defined on the Radio - L3  is 6 =Stabilize
+				Switches[3].FlightNumber=6 -- these correspond to the Logical Switches defined on the Radio - L3  is 6 =Loiter
 				Switches[4].FlightNumber=1 -- these correspond to the Logical Switches defined on the Radio - L4  is 1 =Stabilize
 				Switches[5].FlightNumber=17 -- these correspond to the Logical Switches defined on the Radio - L5  is 17 =Position Hold
 				Switches[6].FlightNumber=12 -- these correspond to the Logical Switches defined on the Radio - L6  is 12 =Drift
