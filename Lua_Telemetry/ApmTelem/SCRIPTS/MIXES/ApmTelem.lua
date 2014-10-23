@@ -2,10 +2,14 @@ ApmTelem_API_VER = 3
 
 local soundfile_base = "/SOUNDS/en/fm_"
 
-local apm_status_message = {severity=nil, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
+local asm = {severity=nil, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
 
 local outputs = {"armd"}
 local cachedValues = {}
+
+local sin=math.sin
+local cos=math.cos
+local rad=math.rad
 
 local function init()
 	ApmTelem_ACTIVE = true
@@ -19,360 +23,359 @@ local function init()
 		model.setTelemetryChannel(1, A2)
 	end
 	-- Prepare A3 and A4 for roll
-	local A3 = model.getTelemetryChannel(2)
-	if A3.unit ~= 3 or A3.range ~=362 or A3.offset ~=-180 
-	then
-		A3.unit = 3
-		A3.range = 362
-		A3.offset = -180
-		A3.alarm1 = -180
-		A3.alarm2 = -180
-		model.setTelemetryChannel(2, A3)
-	end
-	-- Prepare A3 and A4 for roll
-	local A4 = model.getTelemetryChannel(3)
-	if A4.unit ~= 3 or A4.range ~=362 or A4.offset ~=-180 
-	then
-		A4.unit = 3
-		A4.range = 362
-		A4.offset = -180
-		A4.alarm1 = -180
-		A4.alarm2 = -180
-		model.setTelemetryChannel(3, A4)
+	for i=2,3 do
+	local An = model.getTelemetryChannel(i)
+		if An.unit ~= 3 or An.range ~=362 or An.offset ~=-180 
+		then
+			An.unit = 3
+			An.range = 362
+			An.offset = -180
+			An.alarm1 = -180
+			An.alarm2 = -180
+			model.setTelemetryChannel(i, An)
+		end
 	end
 end
 
-local function decodeApmWarning(severity)
-	-- +10 is added to mavlink-value so 0 represents no warning
-	if     severity == nil then return ""
-	elseif severity == 0 then return "Emergency"
-	elseif severity == 1 then return "Alert"
-	elseif severity == 2 then return "Critical"
-	elseif severity == 3 then return "Error"
-	elseif severity == 4 then return "Warning"
-	elseif severity == 5 then return "Notice"
-	elseif severity == 6 then return "Info"
-	elseif severity == 7 then return "Debug"
+local function decodeSeverity(s)
+	local t="Unknown"
+	if     s==nil then return ""
+	elseif s==0 then t="Emergency"
+	elseif s==1 then t="Alert"
+	elseif s==2 then t="Critical"
+	elseif s==3 then t="Error"
+	elseif s==4 then t="Warning"
+	elseif s==5 then t="Notice"
+	elseif s==6 then t="Info"
+	elseif s==7 then t="Debug"
 	end
-	return "Unknown"
+	return t
 end
 
-local function cloneStatusMessage()
+local function cloneAsm()
 	local returnvalue = {
-		timestamp = apm_status_message.timestamp, 
-		id = apm_status_message.id,
-		message = apm_status_message.message, 
-		severity = apm_status_message.severity,
-		silent = apm_status_message.silent,
-		enabled = apm_status_message.enabled,
-		soundfile = apm_status_message.soundfile}
+		timestamp = asm.timestamp, 
+		id = asm.id,
+		message = asm.message, 
+		severity = asm.severity,
+		silent = asm.silent,
+		enabled = asm.enabled,
+		soundfile = asm.soundfile}
 	return returnvalue
 end
 
-local function decodeApmStatusText(textnr)
+local function decodeStatusText(n)
 	-- Default disabled status
 	local ret = {enabled=false, silent=false, text="", soundfile=strDefault}
 
 	-- Send nothing for disabled ids
-	if textnr == 1  -- "ARMING MOTORS"
-	or textnr == 89 -- "DISARMING MOTORS"
-	or textnr == 90 -- "Calibrating barometer"
-	or textnr == 91 -- "barometer calibration complete"
-	or textnr == 92 -- "zero airspeed calibrated"
-	or textnr == 94 -- "GROUND START"
-	or textnr == 93 -- "Initialising APM..."
-	or textnr == 95 -- "<startup_ground> GROUND START"
-	or textnr == 96 -- "<startup_ground> With Delay"
+	if n == 1  -- "ARMING MOTORS"
+	or n == 89 -- "DISARMING MOTORS"
+	or n == 90 -- "Calibrating barometer"
+	or n == 91 -- "barometer calibration complete"
+	or n == 92 -- "zero airspeed calibrated"
+	or n == 94 -- "GROUND START"
+	or n == 93 -- "Initialising APM..."
+	or n == 95 -- "<startup_ground> GROUND START"
+	or n == 96 -- "<startup_ground> With Delay"
 	then
 		return ret
 	end
 	-- Set status-message as enabled 
 	ret.enabled = true
 	-- Check for prearm failures
-	if textnr == 2  then ret.text="PreArm: RC not calibrated"
-	elseif textnr == 3  then ret.text="PreArm: Baro not healthy"
-	elseif textnr == 4  then ret.text="PreArm: Alt disparity"
-	elseif textnr == 5  then ret.text="PreArm: Compass not healthy"
-	elseif textnr == 6  then ret.text="PreArm: Compass not calibrated"
-	elseif textnr == 7  then ret.text="PreArm: Compass offsets too high"
-	elseif textnr == 8  then ret.text="PreArm: Check mag field"
-	elseif textnr == 9  then ret.text="PreArm: INS not calibrated"
-	elseif textnr == 10 then ret.text="PreArm: INS not healthy"
-	elseif textnr == 11 then ret.text="PreArm: Check Board Voltage"
-	elseif textnr == 12 then ret.text="PreArm: Ch7&Ch8 Opt cannot be same"
-	elseif textnr == 13 then ret.text="PreArm: Check FS_THR_VALUE"
-	elseif textnr == 14 then ret.text="PreArm: Check ANGLE_MAX"
-	elseif textnr == 15 then ret.text="PreArm: ACRO_BAL_ROLL/PITCH"
-	elseif textnr == 16 then ret.text="PreArm: GPS Glitch"
-	elseif textnr == 17 then ret.text="PreArm: Need 3D Fix"
-	elseif textnr == 18 then ret.text="PreArm: Bad Velocity"
-	elseif textnr == 19 then ret.text="PreArm: High GPS HDOP"
-	elseif textnr == 111 then ret.text="PreArm: Accels inconsistent"
-    elseif textnr == 112 then ret.text="PreArm: Accels not healthy"
-    elseif textnr == 113 then ret.text="PreArm: Bad GPS Pos"
-    elseif textnr == 114 then ret.text="PreArm: Battery failsafe on."
-    elseif textnr == 115 then ret.text="PreArm: compasses inconsistent"
-    elseif textnr == 116 then ret.text="PreArm: Gyro cal failed"
-    elseif textnr == 117 then ret.text="PreArm: Gyros inconsistent"
-    elseif textnr == 118 then ret.text="PreArm: Gyros not healthy"
-    elseif textnr == 119 then ret.text="PreArm: Radio failsafe on."
+	local t = nil
+	local s = nil
+	if n == 2  then t="PreArm: RC not calibrated"
+	elseif n == 3  then t="Baro not healthy"
+	elseif n == 4  then t="Alt disparity"
+	elseif n == 5  then t="Compass not healthy"
+	elseif n == 6  then t="Compass not calibrated"
+	elseif n == 7  then t="Compass offsets too high"
+	elseif n == 8  then t="Check mag field"
+	elseif n == 9  then t="INS not calibrated"
+	elseif n == 10 then t="INS not healthy"
+	elseif n == 11 then t="Check Board Voltage"
+	elseif n == 12 then t="Ch7&Ch8 Opt cannot be same"
+	elseif n == 13 then t="Check FS_THR_VALUE"
+	elseif n == 14 then t="Check ANGLE_MAX"
+	elseif n == 15 then t="ACRO_BAL_ROLL/PITCH"
+	elseif n == 16 then t="GPS Glitch"
+	elseif n == 17 then t="Need 3D Fix"
+	elseif n == 18 then t="Bad Velocity"
+	elseif n == 19 then t="High GPS HDOP"
+	elseif n == 111 then t="Accels inconsistent"
+    elseif n == 112 then t="Accels not healthy"
+    elseif n == 113 then t="Bad GPS Pos"
+    elseif n == 114 then t="Battery failsafe on"
+    elseif n == 115 then t="compasses inconsistent"
+    elseif n == 116 then t="Gyro cal failed"
+    elseif n == 117 then t="Gyros inconsistent"
+    elseif n == 118 then t="Gyros not healthy"
+    elseif n == 119 then t="Radio failsafe on"
 	end
 	-- If any prearmfailure was found - set the default soundfile and return
 	if ret.text ~= "" and ret.soundfile == nil then
+		ret.text = "PreArm: "..t
 		ret.soundfile = "apm_failed_prearm.wav"
 		return ret
 	end 
 	
 	-- Check for arm failures
-	if textnr == 20 then ret.text="Arm: Alt disparity"; ret.soundfile=strArm
-	elseif textnr == 21 then ret.text="Arm: Thr below FS"; ret.soundfile=strArm
-	elseif textnr == 22 then ret.text="Arm: Leaning"; ret.soundfile=strArm
-	elseif textnr == 23 then ret.text="Arm: Safety Switch"; ret.soundfile=strArm
-	elseif textnr == 100 then ret.text="Arm: Mode not armable"; ret.soundfile=strArm
-    elseif textnr == 101 then ret.text="Arm: Rotor not spinning"; ret.soundfile=strArm
-    elseif textnr == 102 then ret.text="Arm: Thr too high"; ret.soundfile=strArm
+	if n == 20 then t="Alt disparity"
+	elseif n == 21 then t="Thr below FS"
+	elseif n == 22 then t="Leaning"
+	elseif n == 23 then t="Safety Switch"
+	elseif n == 100 then t="Mode not armable"
+    elseif n == 101 then t="Rotor not spinning"
+    elseif n == 102 then t="Thr too high"
 	end
 	-- If any armfailure was found - set the default soundfile and return
-	if ret.text ~= "" and ret.soundfile == nil then
+	if t ~= "" and ret.soundfile == nil then
+		ret.text = "Arm: "..t
 		ret.soundfile = "apm_failed_arm.wav"
 		return ret
 	end 
 	
 	-- Check all other statuses
-    if textnr == 120 then ret.text="Throttle armed!"
-    elseif textnr == 121 then ret.text="Throttle disarmed!"
+    if n == 120 then t="Throttle armed!"
+    elseif n == 121 then t="Throttle disarmed!"
   
-	elseif textnr == 24 then ret.text="AutoTune: Started"; ret.soundfile="apm_autotune_start.wav"
-	elseif textnr == 25 then ret.text="AutoTune: Stopped"; ret.soundfile="apm_autotune_stop.wav"
-	elseif textnr == 26 then ret.text="AutoTune: Success"; ret.soundfile="apm_autotune_done.wav"
-	elseif textnr == 27 then ret.text="AutoTune: Failed"; ret.soundfile="apm_autotune_fail.wav"
+	elseif n == 24 then t="AutoTune: Started"; s="apm_autotune_start.wav"
+	elseif n == 25 then t="AutoTune: Stopped"; s="apm_autotune_stop.wav"
+	elseif n == 26 then t="AutoTune: Success"; s="apm_autotune_done.wav"
+	elseif n == 27 then t="AutoTune: Failed"; s="apm_autotune_fail.wav"
 
-	elseif textnr == 28 then ret.text="Crash: Disarming"
-	elseif textnr == 29 then ret.text="Parachute: Released!"
-	elseif textnr == 30 then ret.text="Parachute: Too Low"
+	elseif n == 28 then t="Crash: Disarming"
+	elseif n == 29 then t="Parachute: Released!"
+	elseif n == 30 then t="Parachute: Too Low"
 	
-	elseif textnr == 31 then ret.text="EKF variance"
-	elseif textnr == 125 then ret.text="DCM bad heading"
+	elseif n == 31 then t="EKF variance"
+	elseif n == 125 then t="DCM bad heading"
 	
-	elseif textnr == 32 then ret.text="Low Battery!"
-	elseif textnr == 33 then ret.text="Lost GPS!"
+	elseif n == 32 then t="Low Battery!"
+	elseif n == 33 then t="Lost GPS!"
 	
-	elseif textnr == 34 then ret.text="Trim saved"
+	elseif n == 34 then t="Trim saved"
 	-- Compassmot.pde
-	elseif textnr ==  35 then ret.text="compass disabled"
-	elseif textnr ==  36 then ret.text="check compass"
-	elseif textnr ==  37 then ret.text="RC not calibrated"
-	elseif textnr ==  38 then ret.text="thr not zero"
-	elseif textnr ==  39 then ret.text="Not landed"
-	elseif textnr ==  40 then ret.text="STARTING CALIBRATION"
-	elseif textnr ==  41 then ret.text="CURRENT"
-	elseif textnr ==  42 then ret.text="THROTTLE"
-	elseif textnr ==  43 then ret.text="Calibration Successful!"
-	elseif textnr ==  44 then ret.text="Failed!"
+	elseif n ==  35 then t="compass disabled"
+	elseif n ==  36 then t="check compass"
+	elseif n ==  37 then t="RC not calibrated"
+	elseif n ==  38 then t="thr not zero"
+	elseif n ==  39 then t="Not landed"
+	elseif n ==  40 then t="STARTING CALIBRATION"
+	elseif n ==  41 then t="CURRENT"
+	elseif n ==  42 then t="THROTTLE"
+	elseif n ==  43 then t="Calibration Successful!"
+	elseif n ==  44 then t="Failed!"
   
-	elseif textnr ==  45 then ret.text="bad rally point message ID"
-	elseif textnr ==  46 then ret.text="bad rally point message count"
-	elseif textnr ==  47 then ret.text="error setting rally point"
-	elseif textnr ==  48 then ret.text="bad rally point index"
-	elseif textnr ==  49 then ret.text="failed to set rally point"
+	elseif n ==  45 then t="bad rally point message ID"
+	elseif n ==  46 then t="bad rally point message count"
+	elseif n ==  47 then t="error setting rally point"
+	elseif n ==  48 then t="bad rally point index"
+	elseif n ==  49 then t="failed to set rally point"
   
-	elseif textnr ==  50 then ret.text="Erasing logs"
-	elseif textnr ==  51 then ret.text="Log erase complete"
+	elseif n ==  50 then t="Erasing logs"
+	elseif n ==  51 then t="Log erase complete"
 
-	elseif textnr ==  52 then ret.text="Motor Test: RC not calibrated"
-	elseif textnr ==  53 then ret.text="Motor Test: vehicle not landed"
-	elseif textnr ==  54 then ret.text="Motor Test: Safety Switch"
+	elseif n ==  52 then t="Motor Test: RC not calibrated"
+	elseif n ==  53 then t="Motor Test: vehicle not landed"
+	elseif n ==  54 then t="Motor Test: Safety Switch"
 
-	elseif textnr ==  55 then ret.text="No dataflash inserted"
-	elseif textnr ==  56 then ret.text="ERASING LOGS"
-	elseif textnr ==  57 then ret.text="Waiting for first HIL_STATE message"
-	elseif textnr ==  61 then ret.text="Ready to FLY."
-	elseif textnr ==  97 then ret.text="Beginning INS calibration; do not move plane"
-	elseif textnr ==  62 then ret.text="NO airspeed"
+	elseif n ==  55 then t="No dataflash inserted"
+	elseif n ==  56 then t="ERASING LOGS"
+	elseif n ==  57 then t="Waiting for first HIL_STATE message"
+	elseif n ==  61 then t="Ready to FLY."
+	elseif n ==  97 then t="Beginning INS calibration; do not move plane"
+	elseif n ==  62 then t="NO airspeed"
   
-	elseif textnr ==  59 then ret.text="command received: "
-	elseif textnr ==  60 then ret.text="new HOME received"
-	elseif textnr ==  98 then ret.text="Ready to track."
-	elseif textnr ==  99 then ret.text="Beginning INS calibration; do not move tracker"
+	elseif n ==  59 then t="command received: "
+	elseif n ==  60 then t="new HOME received"
+	elseif n ==  98 then t="Ready to track."
+	elseif n ==  99 then t="Beginning INS calibration; do not move tracker"
 
-	elseif textnr ==  63 then ret.text="Disable fence failed (autodisable)"
-	elseif textnr ==  64 then ret.text="Fence disabled (autodisable)"
-	elseif textnr ==  110 then ret.text="FBWA tdrag mode"
+	elseif n ==  63 then t="Disable fence failed (autodisable)"
+	elseif n ==  64 then t="Fence disabled (autodisable)"
+	elseif n ==  110 then t="FBWA tdrag mode"
   
-	elseif textnr ==  65 then ret.text="Demo Servos!"
+	elseif n ==  65 then t="Demo Servos!"
 
-	elseif textnr ==  66 then ret.text="Resetting prev_WP"
-	elseif textnr ==  67 then ret.text="init home"
-	elseif textnr ==  68 then ret.text="Fence enabled. (autoenabled)"
-	elseif textnr ==  69 then ret.text="verify_nav: LOITER time complete"
-	elseif textnr ==  70 then ret.text="verify_nav: LOITER orbits complete"
-	elseif textnr ==  71 then ret.text="Reached home"
+	elseif n ==  66 then t="Resetting prev_WP"
+	elseif n ==  67 then t="init home"
+	elseif n ==  68 then t="Fence enabled. (autoenabled)"
+	elseif n ==  69 then t="verify_nav: LOITER time complete"
+	elseif n ==  70 then t="verify_nav: LOITER orbits complete"
+	elseif n ==  71 then t="Reached home"
 
-	elseif textnr ==  72 then ret.text="Failsafe - Short event on, "
-	elseif textnr ==  73 then ret.text="Failsafe - Long event on, "
-	elseif textnr ==  74 then ret.text="No GCS heartbeat."
-	elseif textnr ==  75 then ret.text="Failsafe - Short event off"
+	elseif n ==  72 then t="Failsafe - Short event on, "
+	elseif n ==  73 then t="Failsafe - Long event on, "
+	elseif n ==  74 then t="No GCS heartbeat."
+	elseif n ==  75 then t="Failsafe - Short event off"
 
-	elseif textnr ==  76 then ret.text="command received: "
-	elseif textnr ==  77 then ret.text="fencing must be disabled"
-	elseif textnr ==  78 then ret.text="bad fence point"
+	elseif n ==  76 then t="command received: "
+	elseif n ==  77 then t="fencing must be disabled"
+	elseif n ==  78 then t="bad fence point"
 
-	elseif textnr ==  79 then ret.text="verify_nav: Invalid or no current Nav cmd"
-	elseif textnr ==  80 then ret.text="verify_conditon: Invalid or no current Condition cmd"
-	elseif textnr ==  81 then ret.text="Enable fence failed (cannot autoenable"
- 	elseif textnr ==  124 then ret.text="verify_conditon: Unsupported command"
+	elseif n ==  79 then t="verify_nav: Invalid or no current Nav cmd"
+	elseif n ==  80 then t="verify_conditon: Invalid or no current Condition cmd"
+	elseif n ==  81 then t="Enable fence failed (cannot autoenable"
+ 	elseif n ==  124 then t="verify_conditon: Unsupported command"
 
-	elseif textnr ==  82 then ret.text="geo-fence loaded"
-	elseif textnr ==  83 then ret.text="geo-fence setup error"
-	elseif textnr ==  84 then ret.text="geo-fence OK"
-	elseif textnr ==  85 then ret.text="geo-fence triggered"
+	elseif n ==  82 then t="geo-fence loaded"
+	elseif n ==  83 then t="geo-fence setup error"
+	elseif n ==  84 then t="geo-fence OK"
+	elseif n ==  85 then t="geo-fence triggered"
 
-    elseif textnr == 103 then ret.text="AUTO triggered off"
-    elseif textnr == 122 then ret.text="Triggered AUTO with pin"
+    elseif n == 103 then t="AUTO triggered off"
+    elseif n == 122 then t="Triggered AUTO with pin"
 
-    elseif textnr == 104 then ret.text="Beginning INS calibration; do not move vehicle"
-    elseif textnr == 123 then ret.text="Warming up ADC..."
+    elseif n == 104 then t="Beginning INS calibration; do not move vehicle"
+    elseif n == 123 then t="Warming up ADC..."
 
-    elseif textnr == 105 then ret.text="ESC Cal: auto calibration"
-    elseif textnr == 106 then ret.text="ESC Cal: passing pilot thr to ESCs"
-    elseif textnr == 107 then ret.text="ESC Cal: push safety switch"
-    elseif textnr == 108 then ret.text="ESC Cal: restart board"
+    elseif n == 105 then t="ESC Cal: auto calibration"
+    elseif n == 106 then t="ESC Cal: passing pilot thr to ESCs"
+    elseif n == 107 then t="ESC Cal: push safety switch"
+    elseif n == 108 then t="ESC Cal: restart board"
 
-	elseif textnr == 109 then ret.text="FBWA tdrag off"
+	elseif n == 109 then t="FBWA tdrag off"
 
-	elseif textnr ==  88 then ret.text="Reached Command"; ret.soundfile="apm_cmd_reached.wav"
+	elseif n ==  88 then t="Reached Command"; s="apm_cmd_reached.wav"
 
-	elseif textnr ==  86 then ret.text="flight plan update rejected"; ret.soundfile="apm_flightplan_rej.wav"
-	elseif textnr ==  87 then ret.text="flight plan received"; ret.soundfile="apm_flightplan_upd.wav"
+	elseif n ==  86 then t="flight plan update rejected"; s="apm_flightplan_rej.wav"
+	elseif n ==  87 then t="flight plan received"; s="apm_flightplan_upd.wav"
 	else
 		return nil;
 	end
+	ret.text = t
+	ret.soundfile = s
 	return ret
 end
 
 local function newApmStatus(severity, textid)
-	apm_status_message.severity = severity
-	apm_status_message.id = textid
-	apm_status_message.timestamp = getTime()
-	local decoded = decodeApmStatusText(textid)
-	if decoded ~= nil
+	asm.severity = severity
+	asm.id = textid
+	asm.timestamp = getTime()
+	local d = decodeStatusText(textid)
+	if d ~= nil
 	then
-		apm_status_message.enabled=decoded.enabled
-		apm_status_message.silent=decoded.silent
-		apm_status_message.message=decoded.text
-		apm_status_message.soundfile=decoded.soundfile
+		asm.enabled=d.enabled
+		asm.silent=d.silent
+		asm.message=d.text
+		asm.soundfile=d.soundfile
 	else 
-		apm_status_message.enabled=true
-		apm_status_message.silent=false
-		apm_status_message.message=decodeApmWarning(apm_status_message.severity)..apm_status_message.id
-		apm_status_message.soundfile=""
+		asm.enabled=true
+		asm.silent=false
+		asm.message=decodeSeverity(asm.severity)..asm.id
+		asm.soundfile=""
 	end
 	-- Call override if defined
 	if overrideApmStatusMessage ~= nil
 	then
-		local overridden = overrideApmStatusMessage(cloneStatusMessage(apm_status_message))
-		apm_status_message.enabled = overridden.enabled
-		apm_status_message.silent = overridden.silent
-		apm_status_message.message = overridden.message
-		apm_status_message.soundfile = overridden.soundfile
+		local tmp = overrideApmStatusMessage(cloneAsm(asm))
+		asm.enabled = tmp.enabled
+		asm.silent = tmp.silent
+		asm.message = tmp.message
+		asm.soundfile = tmp.soundfile
 	end
 	
 	-- If message is enabled and we can play sound - play it
-	if apm_status_message.enabled == true and playApmMessage ~= nil
+	if asm.enabled == true and playApmMessage ~= nil
 	then
-		playApmMessage(apm_status_message)
+		playApmMessage(asm)
 	end
 end
 
 local function clearApmStatus()
- apm_status_message.severity = nil
- apm_status_message.id = 0
- apm_status_message.timestamp = 0
- apm_status_message.message = ""
- apm_status_message.enabled = false
- apm_status_message.silent = true
- apm_status_message.soundfile = ""
+ asm.severity = nil
+ asm.id = 0
+ asm.timestamp = 0
+ asm.message = ""
+ asm.enabled = false
+ asm.silent = true
+ asm.soundfile = ""
 end
 
-function getApmActiveStatus()
-	if isApmActiveStatus() == false or apm_status_message.enabled == false 
-	then 
-		return nil
-	end
-	local returnvalue = cloneStatusMessage()
-	return returnvalue
-end
-
-function getApmActiveStatusSeverity()
-	if isApmActiveStatus() == false
-	then 
-		return ""
-	end
-	return decodeApmWarning(apm_status_message.severity)
-end
-
-function isApmActiveStatus()
-	if apm_status_message.timestamp > 0
+local function isApmActiveStatus()
+	if asm.timestamp > 0
 	then
 		return true
 	end
 	return false
 end
 
-function getApmFlightmodeNumber()
+local function getApmActiveStatus()
+	if isApmActiveStatus() == false or asm.enabled == false 
+	then 
+		return nil
+	end
+	local returnvalue = cloneAsm()
+	return returnvalue
+end
+
+local function getApmActiveStatusSeverity()
+	if isApmActiveStatus() == false
+	then 
+		return ""
+	end
+	return decodeSeverity(asm.severity)
+end
+
+
+
+local function getFlightmodeNr()
 	return getValue(208) -- Fuel
 end
 
-function getApmFlightmodeText()
-  local mode = getApmFlightmodeNumber()
-  if     mode == 0  then return "Stabilize"
-  elseif mode == 1  then return "Acro"
-  elseif mode == 2  then return "Altitude Hold"
-  elseif mode == 3  then return "Auto"
-  elseif mode == 4  then return "Guided"
-  elseif mode == 5  then return "Loiter"
-  elseif mode == 6  then return "Return to launch"
-  elseif mode == 7  then return "Circle"
-  elseif mode == 9  then return "Land"
-  elseif mode == 10 then return "Optical Flow Loiter"
-  elseif mode == 11 then return "Drift"
-  elseif mode == 13 then return "Sport"
-  elseif mode == 15 then return "Autotune"
-  elseif mode == 16 then return "Position Hold"
+function getFlightmode()
+  local m = getFlightmodeNr()
+  local t="Unknown Flightmode"
+  if     m==0 then t="Stabilize"
+  elseif m==1 then t="Acro"
+  elseif m==2 then t="Altitude Hold"
+  elseif m==3 then t="Auto"
+  elseif m==4 then t="Guided"
+  elseif m==5 then t="Loiter"
+  elseif m==6 then t="Return to launch"
+  elseif m==7 then t="Circle"
+  elseif m==9 then t="Land"
+  elseif m==10 then t="Optical Flow Loiter"
+  elseif m==11 then t="Drift"
+  elseif m==13 then t="Sport"
+  elseif m==15 then t="Autotune"
+  elseif m==16 then t="Position Hold"
   end
-  return "Unknown Flightmode"
+  return t
 end
 
-function getApmGpsHdop()
+local function getApmGpsHdop()
 	return getValue(203)/10 -- A2
 end 
 
-function getApmGpsSats()
+local function getGpsSats()
   local telem_t1 = getValue(209) -- Temp1
   return (telem_t1 - (telem_t1%10))/10
 end
 
-function getApmGpsLock()
+local function getGpsLock()
   local telem_t1 = getValue(209) -- Temp1
   return  telem_t1%10
 end
 
-function getApmArmed()
+local function isArmed()
 	return getValue(210)%2 > 0 -- Temp2
 end
 
 -- The heading to pilot home position - relative to apm position
-function getApmHeadingHome()
-  local pilotlat = getValue("pilot-latitude")
-  local pilotlon = getValue("pilot-longitude")
-  local curlat = getValue("latitude")
-  local curlon = getValue("longitude")
+local function getApmHeadingHome()
+  local pLat = getValue("pilot-latitude")
+  local pLon = getValue("pilot-longitude")
+  local hLat = getValue("latitude")
+  local hLon = getValue("longitude")
   
-  if pilotlat~=0 and curlat~=0 and pilotlon~=0 and curlon~=0 
+  if pLat~=0 and hLat~=0 and pLon~=0 and hLon~=0 
   then 
-    local z1 = math.sin(math.rad(curlon) - math.rad(pilotlon)) * math.cos(math.rad(curlat))
-    local z2 = math.cos(math.rad(pilotlat)) * math.sin(math.rad(curlat)) - math.sin(math.rad(pilotlat)) * math.cos(math.rad(curlat)) * math.cos(math.rad(curlon) - math.rad(pilotlon))
-
+    local z1 = sin(rad(hLon)-rad(pLon))*cos(rad(hLat))
+    local z2 = cos(rad(pLat))*sin(rad(hLat))-sin(rad(pLat))*cos(rad(hLat))*cos(rad(hLon)-rad(pLon))
     local head_from = (math.deg(math.atan2(z1, z2)) + 360)%360
 	local head_to = (head_from+180)%360
 	return head_to
@@ -381,7 +384,7 @@ function getApmHeadingHome()
 end
 
 -- The heading to pilot home position relative to the current heading.
-function getApmHeadingHomeRelative()
+local function getApmHeadingHomeRelative()
 	local tmp = getApmHeadingHome() - getValue(223) -- Heading
 	return (tmp +360)%360
 end
@@ -396,7 +399,7 @@ local function isTelemetryActive()
 end
 -- Returns the received telemetry value from Taranis. 
 --If the telemetry link is down it returns -- instead of 0
-function getTaranisValueActive(key)
+local function getTaranisValueActive(key)
 	if isTelemetryActive() == false
 	then
 		return "--"
@@ -406,7 +409,7 @@ end
 
 -- Reads and caches telemetry values from Taranis. If the 
 -- telemetry link is down, it returns the cached value insted of 0
-function getTaranisValueCached(key)
+local function getTaranisValueCached(key)
 	local value = getValue(key)
 	if value > 0 or isTelemetryActive()
 	then
@@ -419,40 +422,60 @@ function getTaranisValueCached(key)
 	return value
 end
 
+local initCount = 0
+
+function getApmTelem()
+	initCount = initCount+1
+	return {
+		VER_MAJOR=2,
+		VER_MINOR=1,
+		getValueCached=getTaranisValueCached,
+		getValueActive=getTaranisValueActive,
+		getGpsHdop=getApmGpsHdop,
+		getGpsLock=getGpsLock,
+		getGpsSatsCount=getGpsSats,
+		isArmed=isArmed,
+		getRelativeHeadingHome=getApmHeadingHomeRelative,
+		isActiveStatus=isApmActiveStatus,
+		getActiveStatus=getApmActiveStatus,
+		getCurrentFlightmode=getFlightmode
+	}
+end
+
 local function run_func()
 	-- Handle warning messages from mavlink
-	local t2 = getValue(210) -- Temp2
-	local armed = t2%0x02;
-	t2 = (t2-armed)/0x02;
-	local status_severity = t2%0x10
-	t2 = (t2-status_severity)/0x10
-	local status_textnr = t2%0x400
-	status_severity = status_severity-1
-	if status_severity < 0 
+	local t2 = getValue(210) -- Temp
+	t2 = (t2-(t2%0x02))/0x02;
+	local s = t2%0x10
+	t2 = (t2-s)/0x10
+	local n = t2%0x400
+	s = s-1
+	if s < 0 
 	then 
-		status_severity = nil
+		s = nil
 	end
-	if status_severity ~= nil
+	if s ~= nil
 	then
-		if status_severity ~= apm_status_message.severity or status_textnr ~= apm_status_message.id
+		if s ~= asm.severity or n ~= asm.id
 		then
-			newApmStatus(status_severity, status_textnr)
+			newApmStatus(s, n)
 		end
 	end
-	if apm_status_message.timestamp > 0 and (apm_status_message.timestamp + 250) < getTime()
+	if asm.timestamp > 0 and (asm.timestamp + 250) < getTime()
 	then
 		clearApmStatus()
 	end
 
 	-- Calculate return value (armed)
 	local armd = 0
-	if getApmArmed() == true
+	if isArmed() == true
 	then
 		armd = 1024
 	else
 		armd = 0
 	end	
 	return armd
+	
 end  
 
 return {init=init, run=run_func, output=outputs}

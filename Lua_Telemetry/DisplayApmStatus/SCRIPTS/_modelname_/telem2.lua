@@ -1,12 +1,32 @@
 -- Don't change these
-local API_LEVEL_NEED = 3
+local API_LEVEL_MAJOR = 2
+local API_LEVEL_MINOR = 1
 
 local messages = {}
 local last_message = nil
 global_new_messages = false
 
+local ApmTelem = nil
+		
 local function init()
-	
+	ApmTelem = getApmTelem()
+end
+
+local function checkVersionVersion()
+  if ApmTelem == nil then
+	lcd.drawText(20, 25, "Please install ApmTelem.lua", 0)
+	lcd.drawText(20, 35, "on the \"Custom Scripts\" page!", 0)
+  elseif ApmTelem.VER_MAJOR > API_LEVEL_MAJOR then
+  	lcd.drawText(10, 20, "This telemetry screen is to old for", 0)
+	lcd.drawText(10, 30, "the installed version of ApmTelem.lua", 0)
+	lcd.drawText(10, 40, "Please upgrade", 0)
+  elseif ApmTelem.VER_MAJOR < API_LEVEL_MAJOR or ApmTelem.VER_MINOR < API_LEVEL_MINOR then
+  	lcd.drawText(20, 25, "Please upgrade ApmTelem.lua", 0)
+	lcd.drawText(20, 35, "on the \"Custom Scripts\" page!", 0)
+  else
+	return 0
+  end
+  return 1
 end
 
 --function overrideApmStatusMessage(message)
@@ -40,7 +60,7 @@ end
 -- Looks for new messages and builds a list of messages
 local function handleMessage()
   -- Fetch message
-  local message = getApmActiveStatus()
+  local message = ApmTelem.getActiveStatus()
   if message ~= nil and (last_message == nil or message.timestamp ~= last_message.timestamp)
   then 
 	-- If message is marked as silent - don't activte global flag
@@ -74,8 +94,7 @@ end
 
 -- Scan for messages when not visible
 local function background()
-  if ApmTelem_API_VER == nil or ApmTelem_API_VER < API_LEVEL_NEED
-  then 
+  if checkVersionVersion() > 0 then
     return
   end
   handleMessage()
@@ -83,17 +102,8 @@ end
 
 
 local function run(event)
-  if ApmTelem_API_VER == nil or ApmTelem_API_VER < API_LEVEL_NEED
-  then
-	if ApmTelem_API_VER == nil 
-	then
-		lcd.drawText(20, 20, "Please install mixerscript", 0)
-	else
-		lcd.drawText(20, 20, "Wrong version. Please update", 0)
-	end
-	lcd.drawText(20, 30, "ApmTelem.lua", 0)
-    lcd.drawText(20, 40, "on the \"Custom Scripts\" page!", 0)
-	return
+  if checkVersionVersion() > 0 then
+    return
   end
   
   -- Scan for new messages
