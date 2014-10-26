@@ -61,7 +61,7 @@ AccZ            ( Z Axis average vibration m/s?)
 #define MSG_RATE            10              // Hertz
 
 //#define DEBUG_VFR_HUD
-//#define DEBUG_GPS_RAW
+#define DEBUG_GPS_RAW
 //#define DEBUG_ACC
 //#define DEBUG_BAT
 //#define DEBUG_MODE
@@ -98,7 +98,7 @@ int32_t    ap_gps_altitude = 0;           // 1000 = 1m
 int32_t    ap_gps_speed = 0;
 uint16_t   ap_gps_hdop = 255;             // GPS HDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
 // uint16_t    ap_vdop=0;                 // GPS VDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
-// uint16_t    ap_cog = 0;                // Course over ground (NOT heading, but direction of movement) in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
+uint32_t    ap_cog = 0;                // Course over ground (NOT heading, but direction of movement) in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
 
 
 // Message #74 VFR_HUD 
@@ -310,6 +310,7 @@ break;
           ap_longitude = mavlink_msg_gps_raw_int_get_lon(&msg);
           ap_gps_altitude = mavlink_msg_gps_raw_int_get_alt(&msg);      // 1m =1000
           ap_gps_speed = mavlink_msg_gps_raw_int_get_vel(&msg);         // 100 = 1m/s
+          ap_cog = mavlink_msg_gps_raw_int_get_cog(&msg)/100;
         }
         else
         {
@@ -329,6 +330,8 @@ break;
         debugSerial.print(mavlink_msg_gps_raw_int_get_eph(&msg)/100.0);
         debugSerial.print(", alt: ");
         debugSerial.print(mavlink_msg_gps_raw_int_get_alt(&msg));
+        debugSerial.print(", cog: ");
+        debugSerial.print(mavlink_msg_gps_raw_int_get_cog(&msg));
         debugSerial.println();                                     
 #endif
         break;
