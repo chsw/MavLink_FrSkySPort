@@ -17,6 +17,7 @@ uint8_t nextFAS = 0;
 uint8_t nextVARIO = 0;
 uint8_t nextGPS = 0;
 uint8_t nextDefault = 0;
+uint8_t nextRPM = 0;
 
 // Scale factor for roll/pitch:
 // We need to scale down 360 deg to fit when max value is 256, and 256 equals 362 deg
@@ -210,10 +211,34 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #endif
   #ifdef SENSOR_ID_RPM
   case SENSOR_ID_RPM:
-    printDebugPackageSend("RPM", 1, 1);
-    FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 200+ap_battery_remaining*2);   //  * 2 if number of blades on Taranis is set to 2 + First 4 digits reserved for battery remaining in %
-    break;
-    // Since I don't know the app-id for these values, I just use these two "random"
+  {
+    uint32_t rpm = 0;
+    switch(nextRPM)
+    {
+      case 0:
+        rpm = 0x200;
+        break;
+      case 1:
+        rpm = (ap_battery_remaining*10)<<4 | 0x02;
+        break;
+      case 2:
+        rpm = (ap_throttle*10)<<4 | 0x04;
+        break; 
+      case 3:
+        rpm = ((ap_roll_angle+180)*4)<<4 | 0x06;
+        break;
+      case 4:
+        rpm = ((ap_pitch_angle+180)*4)<<4 | 0x08;
+        break;
+    }
+    if(++nextRPM > 4)
+      nextRPM = 0;
+
+    FrSkySPort_SendPackage(FR_ID_RPM,rpm);
+  }
+  break;
+  
+  // Since I don't know the app-id for these values, I just use these two "random"
   #endif
   case 0x45:
   case 0xC6:
@@ -224,6 +249,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
       break;       
     case 1:
       FrSkySPort_SendPackage(FR_ID_ACCX, fetchAccX());    
+
       break;
     case 2:
       FrSkySPort_SendPackage(FR_ID_ACCY, fetchAccY()); 

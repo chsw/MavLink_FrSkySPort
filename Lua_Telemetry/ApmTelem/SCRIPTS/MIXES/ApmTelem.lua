@@ -3,6 +3,7 @@ ApmTelem_API_VER = 3
 local soundfile_base = "/SOUNDS/en/fm_"
 
 local asm = {severity=nil, id=0, timestamp = 0, message="", enabled=false, silent=true, soundfile=""}
+local rpm = {last=0, blades=0, batt=0, throttle=0, roll=0, pitch=0}
 
 local outputs = {"armd"}
 local cachedValues = {}
@@ -422,6 +423,43 @@ local function getTaranisValueCached(key)
 	return value
 end
 
+local function parseRpm(r)
+	rpm.last = r
+	local id = r%0x10;
+
+	if id == 0 and r > 0 then
+		rpm.blades = 0x200/r
+	end
+
+	if id==0 or rpm.blades == 0 then
+		return
+	end
+	
+	id = (r*rpm.blades)%0x10
+	local value = (r*rpm.blades-id)/0x10
+	if id == 2 then rpm.batt = value/10
+	elseif id == 4 then rpm.throttle = value/20
+	elseif id == 6 then rpm.roll = value/4 -180
+	elseif id == 8 then rpm.pitch = value/4 -180
+	end
+end
+
+local function getBatt()
+	return rpm.batt
+end
+
+local function getThrottle()
+	return rpm.throttle
+end
+
+local function getRoll()
+	return rpm.roll
+end
+
+local function getPitch()
+	return rpm.pitch
+end	
+
 local initCount = 0
 
 function getApmTelem()
@@ -438,7 +476,11 @@ function getApmTelem()
 		getRelativeHeadingHome=getApmHeadingHomeRelative,
 		isActiveStatus=isApmActiveStatus,
 		getActiveStatus=getApmActiveStatus,
-		getCurrentFlightmode=getFlightmode
+		getCurrentFlightmode=getFlightmode,
+		getBatt=getBatt,
+		getThrottle=getThrottle,
+		getRoll=getRoll,
+		getPitch=getPitch
 	}
 end
 
@@ -466,6 +508,11 @@ local function run_func()
 		clearApmStatus()
 	end
 
+	local r = getValue("rpm")
+	if r ~= rpm.last then
+	  parseRpm(r)
+	end
+	
 	-- Calculate return value (armed)
 	local armd = 0
 	if isArmed() == true
