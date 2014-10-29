@@ -1,11 +1,14 @@
 
+29/10/2014: Removed ArduPlane version completely for impossibility of testing.
+
+
 25/10/2014: Added a custom version of the script with some changes to be used with ArduPlane. Completely untested.
 
 
 
-Here goes the version 0.1 of my telemetry script for Taranis X9D for APM/PixHawk Flight Controllers.
+Here goes the version 0.1 of my telemetry script for Taranis X9D for PixHawk Flight Controllers. It has been tested only with 3.2 RCx variants of Arducopter.
 
-The interface between the APM/PixHawk and the FrSky X series receiver is a small Teensy 3.1 board running a custom protocol translator from Mavlink to SPort telemetry.
+The interface between the PixHawk and the FrSky X series receiver is a small Teensy 3.1 board running a custom protocol translator from Mavlink to SPort telemetry.
 
 Almost all the parameters on the normal telemetry screens of the Taranis X9D are correct, with some exceptions (RPM and T2), that combine multiple values on a single field.
 

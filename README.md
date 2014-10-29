@@ -5,11 +5,11 @@ http://diydrones.com/forum/topics/amp-to-frsky-x8r-sport-converter
 
 It's based on the official 1.3 version.
 
-Here goes the version 0.1 of my telemetry script for Taranis X9D for APM/PixHawk Flight Controllers.
+Here goes the version 0.1 of my telemetry script for Taranis X9D for PixHawk Flight Controllers. This script has only been tested with Multicopter variant at 3.2 RCx variant.
 
 ![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/TelemetryScreen.png)
 
-The interface between the APM/PixHawk and the FrSky X series receiver is a small Teensy 3.1 board running a custom protocol translator from Mavlink to SPort telemetry.
+The interface between the PixHawk and the FrSky X series receiver is a small Teensy 3.1 board running a custom protocol translator from Mavlink to SPort telemetry.
 
 Almost all the parameters on the normal telemetry screens of the Taranis X9D are correct, with some exceptions (RPM and T2), that combine multiple values on a single field.
 

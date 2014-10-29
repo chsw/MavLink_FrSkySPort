@@ -12,7 +12,7 @@
 --    A copy of the GNU General Public License is available at <http://www.gnu.org/licenses/>.
 --    
 
-
+-- Arducopter Only.
 
 
 --Auxiliary files on github under dir BMP and SOUNDS/en
@@ -33,7 +33,7 @@
 			    Switches[i].FlightNumber=1
 			end
 
-			--These must be changed to correspond to what is defined as Flight Modes 1 to 6 on the APM/PixHawk.
+			--These must be changed to correspond to what is defined as Flight Modes 1 to 6 on the PixHawk.
 
 			-- I didn't find a way to retrieve these automatically from the FC
 
@@ -92,9 +92,7 @@
 			    FlightMode[i] = {}
 			    FlightMode[i].Name=""
 			    FlightMode[i].SoundActive1="/SOUNDS/en/AVFM"..(i-1).."A.wav"
-			    FlightMode[i].SoundActive2="/SOUNDS/en/ALFM"..(i-1).."A.wav"
 			    FlightMode[i].SoundEngaged1="/SOUNDS/en/AVFM"..(i-1).."E.wav"
-			    FlightMode[i].SoundEngaged2="/SOUNDS/en/ALFM"..(i-1).."E.wav"
 			    FlightMode[i].Repeat=1
 			    FlightMode[i].Timer=0
 
