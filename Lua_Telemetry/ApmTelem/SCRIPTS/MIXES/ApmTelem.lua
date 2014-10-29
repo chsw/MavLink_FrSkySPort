@@ -438,7 +438,7 @@ local function parseRpm(r)
 	id = (r*rpm.blades)%0x10
 	local value = (r*rpm.blades-id)/0x10
 	if id == 2 then rpm.batt = value/10
-	elseif id == 4 then rpm.throttle = value/20
+	elseif id == 4 then rpm.throttle = value/10
 	elseif id == 6 then rpm.roll = value/4 -180
 	elseif id == 8 then rpm.pitch = value/4 -180
 	end
