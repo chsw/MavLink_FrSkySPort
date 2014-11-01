@@ -23,8 +23,10 @@ Make sure your transmitter has lua enabled firmware. If you use OpenTX Companion
 Mixer scripts. These scripts need to be activated under the "Custom scripts" page on your transmitter.
 
 ApmTelem:
-This script configures A2, A3 and A4 for hdop, roll and pitch. It also exports arming-status as an output. This status can be used to for example control a timer.
+ApmTelem.lua: This script configures A2, A3 and A4 for hdop, roll and pitch. It also exports arming-status as an output. This status can be used to for example control a timer.
 It also publishes a set of methods that can be used by other scripts.
+
+ApmTextCop.lua: This script needs to be installed as a mixer-script to enable flightmode texts for copter, and enable texts for the copter-related status-texts.
 
 ApmSounds:
 This script announces (plays a soundfile) the current flightmode reported by the flight controller. Some flightmodes (auto-modes) will be repeated at a given intervall. 
