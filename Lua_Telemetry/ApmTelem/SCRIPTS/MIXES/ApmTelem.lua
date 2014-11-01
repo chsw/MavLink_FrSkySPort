@@ -69,17 +69,6 @@ local function cloneAsm()
 	return returnvalue
 end
 
-local function decodeStatusText(n)
-	if ApmTexts ~= nil then
-		return ApmTexts.decodeStatusText(n)
-	end
-	-- Default disabled status
-	local ret = {enabled=true, silent=false, text="", soundfile=strDefault}
---	ret.text = t
---	ret.soundfile = s
-	return ret
-end
-
 local function newApmStatus(severity, textid)
 	asm.severity = severity
 	asm.id = textid
@@ -221,7 +210,7 @@ local function isTelemetryActive()
 end
 -- Returns the received telemetry value from Taranis. 
 --If the telemetry link is down it returns -- instead of 0
-local function getTaranisValueActive(key)
+local function getValueActive(key)
 	if isTelemetryActive() == false
 	then
 		return "--"
@@ -231,7 +220,7 @@ end
 
 -- Reads and caches telemetry values from Taranis. If the 
 -- telemetry link is down, it returns the cached value insted of 0
-local function getTaranisValueCached(key)
+local function getValueCached(key)
 	local value = getValue(key)
 	if value > 0 or isTelemetryActive()
 	then
@@ -284,6 +273,7 @@ end
 local initCount = 0
 
 function getApmTelem()
+	-- Fetch text-object if its not fetched yet
 	if ApmTexts == nil and getApmTexts ~= nil then
 		ApmTexts = getApmTexts()
 	end
@@ -292,8 +282,8 @@ function getApmTelem()
 	return {
 		VER_MAJOR=2,
 		VER_MINOR=1,
-		getValueCached=getTaranisValueCached,
-		getValueActive=getTaranisValueActive,
+		getValueCached=getValueCached,
+		getValueActive=getValueActive,
 		getGpsHdop=getApmGpsHdop,
 		getGpsLock=getGpsLock,
 		getGpsSatsCount=getGpsSats,
@@ -317,10 +307,7 @@ local function run_func()
 	t2 = (t2-s)/0x10
 	local n = t2%0x400
 	s = s-1
-	if s < 0 
-	then 
-		s = nil
-	end
+	if s < 0 then s = nil end
 	if s ~= nil
 	then
 		if s ~= asm.severity or n ~= asm.id
