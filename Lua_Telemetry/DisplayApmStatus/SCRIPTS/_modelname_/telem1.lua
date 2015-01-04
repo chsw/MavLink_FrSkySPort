@@ -92,7 +92,7 @@ local function run(event)
 -- Line 2
   lcd.drawText(1, 15, ApmTelem.getCurrentFlightmode(), 0);
 -- Line 3
-  lcd.drawText(1, 25, "Speed: "..getValue("speed").."km/h Heading: "..getValue("heading").."@", 0)
+  lcd.drawText(1, 25, "Speed: "..(getValue("gps-speed")*1.852).."km/h Heading: "..getValue("heading").."@", 0)
 -- Line 4
   lcd.drawText(1, 35, "Power: "..ApmTelem.getValueActive(216).."V ("..ApmTelem.getValueActive(214).."V) "..ApmTelem.getValueActive(217).."A "..ApmTelem.getValueActive(219).."W", 0)
 -- Line 5
