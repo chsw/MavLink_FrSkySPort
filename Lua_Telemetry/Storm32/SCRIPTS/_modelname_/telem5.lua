@@ -11,7 +11,7 @@ menu[8] = {label = "Script 6", channel=nil}
 menu[9] = {label = "Script 7", channel=nil}
 
 local menu_index = 0
-local display_rows = 5
+local display_rows = 6
 local function init()
 end
 
@@ -72,6 +72,7 @@ local function ternary(value, first, second)
 end
 
 local function run(event)
+	lcd.drawScreenTitle("STorM32 Control Panel", 1, 1)
 	if event == EVT_MENU_BREAK
 	then
 		menu_index = menu_index +1
@@ -94,8 +95,8 @@ local function run(event)
 		then
 			break
 		end
-		lcd.drawText(1, 10+8*row, menu[i].label, options)
-		lcd.drawText(100, 10+8*row, parseValueStr(menu[i]), 0);
+		lcd.drawText(5, 9+8*row, menu[i].label, options)
+		lcd.drawText(100, 9+8*row, parseValueStr(menu[i]), 0);
 		row = row+1
 	end
 	
@@ -120,7 +121,7 @@ local function run(event)
 					break
 				end
 			end
-			lcd.drawText(1, 55, "Enter to change ("..item.cases[next]..")", 0)
+			lcd.drawText(1, 57, "Press Enter to change to: "..item.cases[next], SMLSIZE)
 			if event == EVT_ENTER_BREAK then
 
 				if next ~= current then
