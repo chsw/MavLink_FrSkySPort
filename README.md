@@ -1,4 +1,4 @@
-MavLink_FrSkySPort
+MavLink_FrSkySPort - WARNING- It does NOT WORK with OpenTX 2.1x and/or ArduCopter 3.3x
 ==================
 This is a modified version of the mavlink to frsky s.port code found here:
 http://diydrones.com/forum/topics/amp-to-frsky-x8r-sport-converter
@@ -6,6 +6,8 @@ http://diydrones.com/forum/topics/amp-to-frsky-x8r-sport-converter
 It's based on the official 1.3 version.
 
 Here goes the version 0.1 of my telemetry script for Taranis X9D for PixHawk Flight Controllers. This script has only been tested with Multicopter variant at 3.2 RCx variant.
+
+WARNING- It does NOT WORK with OpenTX 2.1x and/or ArduCopter 3.3x
 
 ![](https://raw.githubusercontent.com/lvale/MavLink_FrSkySPort/DisplayAPMPosition/TelemetryScreen.png)
 
